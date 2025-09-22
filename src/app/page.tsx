@@ -33,6 +33,8 @@ export default function Home() {
   const [preloadRange, setPreloadRange] = useState(1); // How many videos to preload around current
   const [isExitingChat, setIsExitingChat] = useState(false); // Track when exiting chat screen
   const [isEnteringChat, setIsEnteringChat] = useState(false); // Track when entering chat screen
+  const [hasUserInteracted, setHasUserInteracted] = useState(false); // Track first user interaction for mobile auto-play
+  const [showPlayButton, setShowPlayButton] = useState(false); // Show tap-to-play button when auto-play fails
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -62,9 +64,9 @@ export default function Home() {
     try {
       await el.play();
     } catch (err: unknown) {
-      // AbortError is benign when a pending play is interrupted by pause
-      if (err instanceof Error && err.name !== 'AbortError') {
-        console.debug('play suppressed:', err.message);
+      // Show a tap-to-play overlay on first auto-play failure
+      if (err instanceof Error && err.name === 'NotAllowedError' && !hasUserInteracted) {
+        setShowPlayButton(true);
       }
     }
   };
@@ -146,6 +148,31 @@ export default function Home() {
 
     fetchVideos();
   }, []);
+
+  // Help first video load on mobile devices
+  useEffect(() => {
+    if (videos.length > 0 && currentVideoIndex === 0) {
+      const firstVideo = videoRefs.current[0];
+      if (firstVideo) {
+        // Small delay to ensure video element is ready, only if not already loaded
+        setTimeout(() => {
+          if (firstVideo.readyState < 3) { // Not loaded enough
+            firstVideo.load();
+          }
+        }, 100);
+      }
+    }
+  }, [videos, currentVideoIndex]);
+
+  // Handle play button click
+  const handlePlayButtonClick = () => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
+    const currentVideo = videoRefs.current[currentVideoIndex];
+    if (currentVideo && isPlaying) {
+      safePlay(currentVideo);
+    }
+  };
 
   // Cycle through banner messages
   useEffect(() => {
@@ -291,10 +318,14 @@ export default function Home() {
   }, [currentVideoIndex, videos.length, showChatScreen]);
 
   const togglePlayPause = () => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
     setIsPlaying(prev => !prev);
   };
 
   const goToNext = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
     if (currentVideoIndex < videos.length - 1) {
       const newIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(newIndex);
@@ -317,6 +348,8 @@ export default function Home() {
   }, [currentVideoIndex, videos.length, showChatScreen]);
 
   const goToPrevious = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
     if (currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
     }
@@ -325,6 +358,8 @@ export default function Home() {
 
   // Navigation functions that don't increment video count (for chat screen navigation)
   const navigateToNext = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
     if (currentVideoIndex < videos.length - 1) {
       setIsExitingChat(true);
       setIsTransitioning(true);
@@ -340,6 +375,8 @@ export default function Home() {
   }, [currentVideoIndex, videos.length]);
 
   const navigateToPrevious = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
     if (currentVideoIndex > 0) {
       setIsExitingChat(true);
       setIsTransitioning(true);
@@ -537,7 +574,7 @@ export default function Home() {
       <div 
         className="video-feed"
         style={{
-          transform: `translateY(-${currentVideoIndex * 100}vh)`
+          transform: `translateY(-${currentVideoIndex * 100}dvh)`
         }}
       >
         {videos.map((video, index) => (
@@ -554,7 +591,7 @@ export default function Home() {
                   ? (index === currentVideoIndex + 1 ? "auto" : "none")
                   : isEnteringChat
                     ? (index === currentVideoIndex + 1 ? "auto" : "none")
-                    : Math.abs(index - currentVideoIndex) <= preloadRange 
+                    : index === 0 || Math.abs(index - currentVideoIndex) <= preloadRange 
                       ? (connectionType === 'slow-2g' || connectionType === '2g' ? "metadata" : "auto")
                       : "none"
               }
@@ -565,6 +602,11 @@ export default function Home() {
                 }
               }}
               onCanPlay={() => {
+                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                  safePlay(videoRefs.current[index]);
+                }
+              }}
+              onCanPlayThrough={() => {
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
@@ -580,6 +622,20 @@ export default function Home() {
             {isTransitioning && index === currentVideoIndex && (
               <div className="transition-overlay">
                 <div className="transition-spinner"></div>
+              </div>
+            )}
+
+            {/* Tap to play overlay for mobile */}
+            {showPlayButton && index === currentVideoIndex && (
+              <div className="tap-to-play-overlay" onClick={handlePlayButtonClick}>
+                <div className="tap-to-play-button">
+                  <div className="play-icon-large">
+                    <svg width="120" height="120" viewBox="0 0 24 24" fill="white">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                  <div className="tap-to-play-text">Tap to Play</div>
+                </div>
               </div>
             )}
             

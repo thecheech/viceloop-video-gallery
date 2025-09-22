@@ -439,12 +439,43 @@ body {
   }
 }
 
+/* Mobile optimizations - broader range */
+@media screen and (max-width: 768px) {
+  .tiktok-container {
+    height: 100vh;
+    height: 100dvh;
+    /* Remove conflicting padding that causes progressive shifts */
+  }
+  
+  .video-slide {
+    height: 100vh;
+    height: 100dvh;
+    /* Use consistent height without complex calculations */
+  }
+  
+  /* Adjust banner for mobile - keep it simple */
+  .banner-pill {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  /* Make video player consistent */
+  .video-player {
+    width: 100%;
+    height: 100%;
+    max-height: 100dvh;
+    object-fit: cover;
+  }
+}
+
 /* TikTok-style app styles */
 .tiktok-container {
   position: relative;
   width: 100vw;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   background: #000;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -490,7 +521,7 @@ body {
   position: relative;
   width: 100%;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -498,7 +529,7 @@ body {
   position: relative;
   width: 100%;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1021,7 +1052,6 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
   display: flex;
   align-items: center;
@@ -1380,93 +1410,56 @@ body {
   }
 }
 
-/* iPhone 13 specific optimizations */
-@media (max-width: 428px) and (max-height: 926px) {
-  .tiktok-container {
-    height: 100vh;
-    height: 100dvh;
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+/* Tap to play overlay for mobile auto-play */
+.tap-to-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.tap-to-play-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.play-icon-large {
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.tap-to-play-button:hover .play-icon-large {
+  opacity: 1;
+}
+
+.tap-to-play-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0.9;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
   }
-  
-  .video-feed {
-    height: 100vh;
-    height: 100dvh;
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-  
-  .video-slide {
-    height: 100vh;
-    height: 100dvh;
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-  
-  .chat-screen {
-    height: 100vh;
-    height: 100dvh;
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-  
-  /* Adjust profile image sizes for iPhone 13 */
-  .profile-pic-small {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .chat-profile-pic {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .chat-profile-ring {
-    width: 110px;
-    height: 110px;
-  }
-  
-  /* Adjust bottom section spacing */
-  .bottom-section {
-    padding: 15px 20px 20px 20px;
-  }
-  
-  /* Adjust action buttons for smaller screen */
-  .action-buttons {
-    gap: 15px;
-  }
-  
-  .social-buttons {
-    gap: 15px;
-  }
-  
-  .action-btn {
-    width: 45px;
-    height: 45px;
-  }
-  
-  .action-btn svg {
-    width: 20px;
-    height: 20px;
-  }
-  
-  /* Adjust text sizes */
-  .username {
-    font-size: 0.9rem;
-  }
-  
-  .description {
-    font-size: 0.85rem;
-    line-height: 1.3;
-  }
-  
-  .hashtag {
-    font-size: 0.8rem;
-    padding: 3px 8px;
-  }
-  
-  /* Adjust banner pill for mobile */
-  .banner-pill {
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    padding: 8px 12px;
-    font-size: 0.8rem;
+  50% {
+    transform: scale(1.05);
   }
 }

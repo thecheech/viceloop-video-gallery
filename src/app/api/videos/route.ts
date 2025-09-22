@@ -30,7 +30,6 @@ export interface VideoFile {
   verified?: boolean;
   postMessage?: string;
   hashtags?: string[];
-  likes?: number;
 }
 
 // Helper function to load model profiles
@@ -42,43 +41,6 @@ function loadModelProfiles() {
   } catch (error) {
     console.error('Error loading model profiles:', error);
     return {};
-  }
-}
-
-// Helper function to load hashtags
-function loadHashtags() {
-  try {
-    const hashtagsPath = path.join(process.cwd(), 'src', 'data', 'hashtags.json');
-    const hashtagsData = fs.readFileSync(hashtagsPath, 'utf8');
-    return JSON.parse(hashtagsData);
-  } catch (error) {
-    console.error('Error loading hashtags:', error);
-    return ['#spicy', '#sluttymonday'];
-  }
-}
-
-// Helper function to get random hashtags
-function getRandomHashtags(hashtags: string[], count: number = 2): string[] {
-  const shuffled = [...hashtags].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
-// Helper function to generate random like count
-function getRandomLikes(): number {
-  // Generate likes between 100 and 9999 with some distribution
-  const rand = Math.random();
-  if (rand < 0.1) {
-    // 10% chance for very high likes (5000-9999)
-    return Math.floor(Math.random() * 5000) + 5000;
-  } else if (rand < 0.3) {
-    // 20% chance for high likes (1000-4999)
-    return Math.floor(Math.random() * 4000) + 1000;
-  } else if (rand < 0.6) {
-    // 30% chance for medium likes (500-999)
-    return Math.floor(Math.random() * 500) + 500;
-  } else {
-    // 40% chance for low likes (100-499)
-    return Math.floor(Math.random() * 400) + 100;
   }
 }
 
@@ -128,18 +90,43 @@ function generatePostMessage(): string {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
+// Helper function to get random hashtags
+function getRandomHashtags(hashtags: string[], count: number): string[] {
+  const shuffled = [...hashtags].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+// Helper function to generate random like count
+function getRandomLikes(): number {
+  const rand = Math.random();
+  if (rand < 0.1) {
+    return Math.floor(Math.random() * 5000) + 5000;
+  } else if (rand < 0.3) {
+    return Math.floor(Math.random() * 4000) + 1000;
+  } else if (rand < 0.6) {
+    return Math.floor(Math.random() * 500) + 500;
+  } else {
+    return Math.floor(Math.random() * 400) + 100;
+  }
+}
+
 // Helper function to check if profile image exists for a video
 function hasProfileImage(videoFilename: string): { exists: boolean; profileImageUrl?: string } {
   try {
     // Extract the base name without extension
     const baseName = videoFilename.replace(/\.[^/.]+$/, '');
     
-    // Since all profile images are now in R2, we assume they exist
-    // The profile image API will handle 404s if the image doesn't exist
-    return {
-      exists: true,
-      profileImageUrl: `/api/profile-image/${encodeURIComponent(`${baseName}_profile.jpg`)}`
-    };
+    // Check if profile image exists in the local directory
+    const profileImagePath = path.join(process.cwd(), 'promptchan-scrapper', 'downloads', 'profile', `${baseName}_profile.jpg`);
+    
+    if (fs.existsSync(profileImagePath)) {
+      return {
+        exists: true,
+        profileImageUrl: `/api/profile-image/${encodeURIComponent(`${baseName}_profile.jpg`)}`
+      };
+    }
+    
+    return { exists: false };
   } catch (error) {
     console.error('Error checking profile image:', error);
     return { exists: false };
@@ -173,9 +160,13 @@ export async function GET(request: NextRequest) {
     const response = await s3Client.send(listCommand);
     const objects = response.Contents || [];
     
-    // Load model profiles and hashtags
+    // Load model profiles
     const modelProfiles = loadModelProfiles();
-    const availableHashtags = loadHashtags();
+    
+    // Load hashtags
+    const hashtagsPath = path.join(process.cwd(), 'src', 'data', 'hashtags.json');
+    const hashtagsData = fs.readFileSync(hashtagsPath, 'utf8');
+    const availableHashtags = JSON.parse(hashtagsData);
     
     // Filter video files
     const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
