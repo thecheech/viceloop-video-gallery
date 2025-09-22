@@ -1,131 +1,161 @@
-# PromptChan Scraper
+# Video Gallery
 
-A powerful web scraper for downloading videos and extracting metadata from promptchan.com/explore.
+A Next.js application to browse and manage scraped videos from the downloads folder.
 
 ## Features
 
-- 🔐 **Manual Login Support**: Opens a browser window for you to log in manually
-- 📥 **Video Downloads**: Automatically downloads all videos from the explore page
-- 💾 **Metadata Extraction**: Captures prompts, titles, descriptions, and other metadata
-- 📊 **JSON Export**: Saves all data in structured JSON format
-- 🎯 **Smart Scrolling**: Automatically scrolls to load more content
-- 🛡️ **Error Handling**: Robust error handling and retry mechanisms
+- 🎥 **Video Gallery**: Browse all videos in a responsive grid layout
+- 🔍 **Search**: Search videos by filename
+- 📄 **Pagination**: Navigate through large collections of videos
+- ▶️ **Video Player**: Built-in video player with play/pause controls
+- 📥 **Download**: Download videos directly from the browser
+- 📊 **Statistics**: View collection statistics and file information
+- 📱 **Responsive**: Works on desktop, tablet, and mobile devices
 
-## Installation
+## Getting Started
 
-1. Clone or download this repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Prerequisites
 
-## Usage
+- Node.js 18+ 
+- Videos in the `../downloads` folder
 
-### Quick Start
+### Installation
 
+1. Install dependencies:
 ```bash
-npm start
+npm install
 ```
 
-This will:
-1. Open a browser window
-2. Navigate to promptchan.com
-3. Wait for you to log in manually
-4. Scrape the explore page
-5. Download all videos
-6. Save metadata to JSON
-
-### Manual Execution
-
+2. Start the development server:
 ```bash
-node src/index.js
+npm run dev
 ```
 
-## Configuration
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-Edit `config.json` to customize:
-- Download directories
-- Browser settings
-- CSS selectors for data extraction
-- Timeout values
+## Project Structure
 
-## Output Structure
-
-### Downloads Directory
 ```
-downloads/
-├── video_title_1_video_1234567890.mp4
-├── video_title_2_video_1234567891.mp4
-└── ...
+video-gallery/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── videos/route.ts          # API endpoint for fetching videos
+│   │   │   └── video/[filename]/route.ts # API endpoint for serving video files
+│   │   ├── globals.css                  # Global styles
+│   │   ├── layout.tsx                   # Root layout
+│   │   └── page.tsx                     # Main page component
+│   └── components/
+│       ├── VideoCard.tsx                # Individual video card component
+│       ├── Pagination.tsx               # Pagination component
+│       ├── SearchBar.tsx                # Search input component
+│       └── StatsBar.tsx                 # Statistics display component
+├── public/                              # Static assets
+└── package.json
 ```
 
-### Metadata Directory
-```
-metadata/
-└── promptchan_metadata_2024-01-15T10-30-45-123Z.json
-```
+## API Endpoints
 
-### JSON Metadata Format
+### GET /api/videos
+Fetch paginated list of videos with optional search.
+
+**Query Parameters:**
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 12)
+- `search` (string): Search query for filename filtering
+
+**Response:**
 ```json
 {
-  "scrapedAt": "2024-01-15T10:30:45.123Z",
-  "totalVideos": 25,
-  "source": "https://promptchan.com/explore",
   "videos": [
     {
-      "id": "video_0_1705312245123",
-      "videoUrl": "https://example.com/video.mp4",
-      "thumbnailUrl": "https://example.com/thumb.jpg",
-      "title": "Video Title",
-      "description": "Video description",
-      "prompt": "User prompt text",
-      "metadata": {
-        "timestamp": "2024-01-15T10:30:45.123Z",
-        "elementIndex": 0,
-        "className": "video-item",
-        "likes": "42",
-        "views": "1.2k",
-        "comments": "8"
-      },
-      "scrapedAt": "2024-01-15T10:30:45.123Z",
-      "localPath": "./downloads/video_title_video_1234567890.mp4",
-      "downloadStatus": "success"
+      "id": "video_1.mp4",
+      "filename": "video_1.mp4",
+      "size": 3145728,
+      "sizeFormatted": "3.0 MB",
+      "extension": ".mp4",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "url": "/api/video/video_1.mp4"
     }
-  ]
+  ],
+  "total": 350,
+  "page": 1,
+  "totalPages": 30,
+  "limit": 12
 }
 ```
 
-## Requirements
+### GET /api/video/[filename]
+Serve video file with proper headers for streaming.
 
-- Node.js 16+ 
-- Valid promptchan.com account
-- Internet connection
-- Sufficient disk space for video downloads
+**Parameters:**
+- `filename` (string): Name of the video file
+
+**Response:** Video file stream with appropriate content-type headers.
+
+## Features in Detail
+
+### Video Cards
+- Hover to reveal play button
+- Click to play/pause video
+- Download button for each video
+- File size and creation date display
+- Responsive design
+
+### Search
+- Real-time search with debouncing
+- Searches video filenames
+- Clear search functionality
+
+### Pagination
+- Smart pagination with ellipsis for large page counts
+- Previous/Next navigation
+- Configurable items per page (6, 12, 24, 48)
+
+### Statistics
+- Total video count
+- Storage usage estimate
+- Last updated information
+
+## Customization
+
+### Styling
+The app uses Tailwind CSS for styling. You can customize the appearance by modifying:
+- `src/app/globals.css` for global styles
+- Component files for component-specific styles
+
+### Video Path
+The app looks for videos in `../downloads` folder. To change this, modify the `downloadsPath` in:
+- `src/app/api/videos/route.ts`
+- `src/app/api/video/[filename]/route.ts`
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Performance
+
+- Lazy loading for video thumbnails
+- Debounced search to reduce API calls
+- Efficient pagination
+- Optimized video streaming with proper headers
 
 ## Troubleshooting
 
-### Login Issues
-- Make sure you have a valid account on promptchan.com
-- Try logging in manually in your regular browser first
-- Check your internet connection
-- Ensure the login was successful before continuing
+### No videos showing
+1. Check that the `../downloads` folder exists
+2. Verify that video files are in the correct format (.mp4, .webm, .mov, etc.)
+3. Check the browser console for any errors
 
-### Download Issues
-- Check available disk space
-- Verify internet connection stability
-- Some videos might be protected or require special permissions
+### Videos not playing
+1. Ensure video files are not corrupted
+2. Check that the file format is supported by the browser
+3. Verify file permissions
 
-### Scraping Issues
-- The website structure might have changed
-- Update selectors in `config.json` if needed
-- Check browser console for errors
-
-## Legal Notice
-
-This tool is for educational purposes only. Please respect the website's terms of service and robots.txt. Only scrape content you have permission to access.
-
-## License
-
-MIT License - see LICENSE file for details.
-
-
+### Performance issues
+1. Reduce the number of items per page
+2. Use search to filter results
+3. Check file sizes - very large files may take time to load
