@@ -17,13 +17,15 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "puppeteer": "^21.5.2",
-    "fs-extra": "^11.1.1",
-    "path": "^0.12.7",
-    "mime-types": "^2.1.35",
-    "progress": "^2.0.3",
     "chalk": "^4.1.2",
+    "dotenv": "^17.2.2",
+    "form-data": "^4.0.4",
+    "fs-extra": "^11.1.1",
     "inquirer": "^8.2.6",
-    "ora": "^5.4.1"
+    "mime-types": "^2.1.35",
+    "ora": "^5.4.1",
+    "path": "^0.12.7",
+    "progress": "^2.0.3",
+    "puppeteer": "^21.5.2"
   }
 }
