@@ -25,7 +25,7 @@ export default function Home() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  // Removed banner state - using single DeepMode pill
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [showChatScreen, setShowChatScreen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -41,23 +41,7 @@ export default function Home() {
   const wheelLockRef = useRef<boolean>(false);
   const lastWheelAtRef = useRef<number>(0);
 
-  const bannerMessages = [
-    {
-      text: "Create an AI model from your pics in minutes",
-      url: "https://deepmode.com",
-      bgColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-    },
-    {
-      text: "Chat with an AI girl — she sends spicy vids",
-      url: "https://clonella.com",
-      bgColor: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-    },
-    {
-      text: "Swap any face into this video — try it now",
-      url: "https://faceswapfun.com",
-      bgColor: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-    }
-  ];
+  // Removed banner messages - now using single DeepMode pill
 
   const safePlay = async (el: HTMLVideoElement | null) => {
     if (!el) return;
@@ -174,14 +158,7 @@ export default function Home() {
     }
   };
 
-  // Cycle through banner messages
-  useEffect(() => {
-    const bannerInterval = setInterval(() => {
-      setCurrentBannerIndex(prev => (prev + 1) % bannerMessages.length);
-    }, 4000); // Change every 4 seconds
-
-    return () => clearInterval(bannerInterval);
-  }, [bannerMessages.length]);
+  // Removed banner cycling - using single DeepMode pill
 
   // Handle scroll navigation (throttled, one step per gesture)
   useEffect(() => {
@@ -237,7 +214,7 @@ export default function Home() {
         container.removeEventListener('wheel', handleWheel);
       }
     };
-  }, [videos.length]);
+  }, [videos.length, currentVideoIndex, showChatScreen]);
 
   // Handle video play/pause with debounce to avoid AbortError
   useEffect(() => {
@@ -391,10 +368,8 @@ export default function Home() {
     }
   }, [currentVideoIndex]);
 
-  // Handle swipe gestures for chat screen
+  // Handle swipe gestures for regular video navigation
   useEffect(() => {
-    if (!showChatScreen) return;
-
     let startY = 0;
     let startTime = 0;
 
@@ -415,20 +390,10 @@ export default function Home() {
       if (deltaTime < 300 && Math.abs(deltaY) > 50) {
         if (deltaY > 0) {
           // Swipe up - go to next video
-          if (showChatScreen) {
-            setShowChatScreen(false);
-            navigateToNext();
-          } else {
-            goToNext();
-          }
+          goToNext();
         } else {
           // Swipe down - go to previous video
-          if (showChatScreen) {
-            setShowChatScreen(false);
-            navigateToPrevious();
-          } else {
-            goToPrevious();
-          }
+          goToPrevious();
         }
       }
 
@@ -443,7 +408,53 @@ export default function Home() {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [showChatScreen, currentVideoIndex, videos.length, goToNext, goToPrevious, navigateToNext, navigateToPrevious]);
+  }, [goToNext, goToPrevious]);
+
+  // Handle swipe gestures for chat screen
+  useEffect(() => {
+    if (!showChatScreen) return;
+
+    let startY = 0;
+    let startTime = 0;
+
+    const handleChatTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+    };
+
+    const handleChatTouchEnd = (e: TouchEvent) => {
+      if (!startY) return;
+
+      const endY = e.changedTouches[0].clientY;
+      const endTime = Date.now();
+      const deltaY = startY - endY;
+      const deltaTime = endTime - startTime;
+
+      // Only register swipe if it's quick enough and has enough distance
+      if (deltaTime < 300 && Math.abs(deltaY) > 50) {
+        if (deltaY > 0) {
+          // Swipe up - go to next video
+          setShowChatScreen(false);
+          navigateToNext();
+        } else {
+          // Swipe down - go to previous video
+          setShowChatScreen(false);
+          navigateToPrevious();
+        }
+      }
+
+      startY = 0;
+      startTime = 0;
+    };
+
+    document.addEventListener('touchstart', handleChatTouchStart, { passive: true });
+    document.addEventListener('touchend', handleChatTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleChatTouchStart);
+      document.removeEventListener('touchend', handleChatTouchEnd);
+    };
+  }, [showChatScreen, navigateToNext, navigateToPrevious]);
 
   if (loading) {
     return (
@@ -555,18 +566,16 @@ export default function Home() {
 
   return (
     <div className="tiktok-container" ref={containerRef}>
-      {/* Banner Pill */}
-      <div className="banner-pill">
+      {/* DeepMode Pill */}
+      <div className="deepmode-pill-top">
         <a 
-          href={bannerMessages[currentBannerIndex].url}
+          href="https://deepmode.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="banner-link"
-          style={{
-            background: bannerMessages[currentBannerIndex].bgColor
-          }}
+          className="deepmode-link"
         >
-          {bannerMessages[currentBannerIndex].text}
+          <span className="created-text">Created with</span>
+          <span className="deepmode-text">DeepMode</span>
         </a>
       </div>
 
@@ -721,19 +730,6 @@ export default function Home() {
                     </button>
                   </div>
 
-                  <a 
-                    href="https://deepmode.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="action-btn deepmode-btn"
-                  >
-                    <div className="deepmode-container">
-                      <div className="deepmode-text">
-                        <span className="created-text">Created using</span>
-                        <span className="deepmode-gradient">DeepMode</span>
-                      </div>
-                    </div>
-                  </a>
                 </div>
               </div>
             </div>
