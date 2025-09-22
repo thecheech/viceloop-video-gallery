@@ -1,0 +1,51 @@
+{
+  "scraper": {
+    "baseUrl": "https://promptchan.com",
+    "exploreUrl": "https://promptchan.com/explore",
+    "downloadDir": "./downloads",
+    "metadataDir": "./metadata",
+    "maxScrollAttempts": 10,
+    "scrollDelay": 2000,
+    "downloadTimeout": 30000
+  },
+  "browser": {
+    "headless": false,
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "selectors": {
+    "videoElements": [
+      "video",
+      "[data-video]",
+      ".video-item",
+      ".post-item"
+    ],
+    "titleSelectors": [
+      "h1", "h2", "h3",
+      ".title",
+      ".post-title",
+      "[data-title]"
+    ],
+    "descriptionSelectors": [
+      ".description",
+      ".post-description",
+      ".content",
+      "p"
+    ],
+    "promptSelectors": [
+      ".prompt",
+      ".user-prompt",
+      "[data-prompt]"
+    ],
+    "metadataSelectors": {
+      "likes": [".likes", ".like-count", "[data-likes]"],
+      "views": [".views", ".view-count", "[data-views]"],
+      "comments": [".comments", ".comment-count", "[data-comments]"]
+    }
+  }
+}
+
+

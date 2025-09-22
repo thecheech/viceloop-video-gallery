@@ -1,0 +1,29 @@
+{
+  "name": "promptchan-scrapper",
+  "version": "1.0.0",
+  "description": "A web scraper for promptchan.com",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/smart-rate-limit-index.js",
+    "start": "node src/smart-rate-limit-index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "scraper",
+    "puppeteer",
+    "web-scraping",
+    "promptchan"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.5.2",
+    "fs-extra": "^11.1.1",
+    "path": "^0.12.7",
+    "mime-types": "^2.1.35",
+    "progress": "^2.0.3",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "promptchan-video-gallery",
+  "version": "1.0.0",
+  "description": "Video gallery for scraped promptchan content",
+  "private": true,
+  "scripts": {
+    "dev": "cd video-gallery && npm run dev",
+    "build": "cd video-gallery && npm run build",
+    "start": "cd video-gallery && npm run start",
+    "lint": "cd video-gallery && npm run lint",
+    "scraper:dev": "cd promptchan-scrapper && npm run dev",
+    "scraper:start": "cd promptchan-scrapper && npm run start"
+  },
+  "keywords": [
+    "video-gallery",
+    "nextjs",
+    "tiktok-interface",
+    "promptchan"
+  ],
+  "author": "",
+  "license": "MIT"
+}
