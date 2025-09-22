@@ -35,6 +35,7 @@ export default function Home() {
   const [isEnteringChat, setIsEnteringChat] = useState(false); // Track when entering chat screen
   const [hasUserInteracted, setHasUserInteracted] = useState(false); // Track first user interaction for mobile auto-play
   const [showPlayButton, setShowPlayButton] = useState(false); // Show tap-to-play button when auto-play fails
+  const [videoCount, setVideoCount] = useState(0); // Track how many videos we've viewed
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -178,13 +179,14 @@ export default function Home() {
       if (e.deltaY > 10) {
         const newIndex = Math.min(currentVideoIndex + 1, videos.length - 1);
         if (newIndex !== currentVideoIndex) {
-          setCurrentVideoIndex(newIndex);
+          const newVideoCount = videoCount + 1;
+          setVideoCount(newVideoCount);
           
-          // Show chat screen every 5 videos (only if not already showing)
-          if ((newIndex + 1) % 5 === 0 && !showChatScreen) {
-            // Preload the next video before showing chat screen
+          // Check if we should show chat screen every 5 videos BEFORE moving to next video
+          if (newVideoCount % 5 === 0 && !showChatScreen) {
+            // Show chat screen with current video model (the 5th video)
             setIsEnteringChat(true);
-            const nextVideoIndex = newIndex + 1;
+            const nextVideoIndex = newIndex;
             if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
               videoRefs.current[nextVideoIndex]!.preload = "auto";
             }
@@ -193,6 +195,9 @@ export default function Home() {
               setShowChatScreen(true);
               setIsEnteringChat(false);
             }, 200);
+          } else {
+            // Normal navigation
+            setCurrentVideoIndex(newIndex);
           }
         }
       } else if (e.deltaY < -10) {
@@ -265,13 +270,14 @@ export default function Home() {
           e.preventDefault();
           if (currentVideoIndex < videos.length - 1) {
             const newIndex = currentVideoIndex + 1;
-            setCurrentVideoIndex(newIndex);
+            const newVideoCount = videoCount + 1;
+            setVideoCount(newVideoCount);
             
-            // Show chat screen every 5 videos (only if not already showing)
-            if ((newIndex + 1) % 5 === 0 && !showChatScreen) {
-              // Preload the next video before showing chat screen
+            // Check if we should show chat screen every 5 videos BEFORE moving to next video
+            if (newVideoCount % 5 === 0 && !showChatScreen) {
+              // Show chat screen with current video model (the 5th video)
               setIsEnteringChat(true);
-              const nextVideoIndex = newIndex + 1;
+              const nextVideoIndex = newIndex;
               if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
                 videoRefs.current[nextVideoIndex]!.preload = "auto";
               }
@@ -280,6 +286,9 @@ export default function Home() {
                 setShowChatScreen(true);
                 setIsEnteringChat(false);
               }, 200);
+            } else {
+              // Normal navigation
+              setCurrentVideoIndex(newIndex);
             }
           }
           break;
@@ -370,6 +379,9 @@ export default function Home() {
 
   // Handle swipe gestures for regular video navigation
   useEffect(() => {
+    // Don't add touch handlers when chat screen is showing
+    if (showChatScreen) return;
+
     let startY = 0;
     let startTime = 0;
 
@@ -408,7 +420,7 @@ export default function Home() {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [goToNext, goToPrevious]);
+  }, [goToNext, goToPrevious, showChatScreen]);
 
   // Handle swipe gestures for chat screen
   useEffect(() => {
@@ -435,11 +447,15 @@ export default function Home() {
         if (deltaY > 0) {
           // Swipe up - go to next video
           setShowChatScreen(false);
-          navigateToNext();
+          if (currentVideoIndex < videos.length - 1) {
+            setCurrentVideoIndex(prev => prev + 1);
+          }
         } else {
           // Swipe down - go to previous video
           setShowChatScreen(false);
-          navigateToPrevious();
+          if (currentVideoIndex > 0) {
+            setCurrentVideoIndex(prev => prev - 1);
+          }
         }
       }
 
@@ -458,9 +474,15 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Loading TikTok feed...</p>
+      <div className="viceloop-loading">
+        <div className="viceloop-loading-content">
+          <h1 className="viceloop-loading-title">ViceLoop is Loading</h1>
+          <div className="viceloop-loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -478,7 +500,10 @@ export default function Home() {
   if (showChatScreen && videos.length > 0) {
     const currentVideo = videos[currentVideoIndex];
     return (
-      <div className="chat-screen">
+      <div 
+        className="chat-screen"
+        onClick={() => window.open('https://clonella.com', '_blank')}
+      >
         <div className="chat-screen-content">
           <div className="chat-model-info">
             <div className="chat-profile-image">
@@ -536,9 +561,12 @@ export default function Home() {
         <div className="chat-nav-controls">
         <button 
           className="chat-nav-btn chat-nav-up"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setShowChatScreen(false);
-            navigateToPrevious();
+            if (currentVideoIndex > 0) {
+              setCurrentVideoIndex(prev => prev - 1);
+            }
           }}
           disabled={currentVideoIndex === 0}
         >
@@ -549,9 +577,12 @@ export default function Home() {
         
         <button 
           className="chat-nav-btn chat-nav-down"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setShowChatScreen(false);
-            navigateToNext();
+            if (currentVideoIndex < videos.length - 1) {
+              setCurrentVideoIndex(prev => prev + 1);
+            }
           }}
           disabled={currentVideoIndex === videos.length - 1}
         >
