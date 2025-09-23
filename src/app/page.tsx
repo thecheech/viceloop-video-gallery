@@ -717,38 +717,40 @@ export default function Home() {
         </div>
         
         {/* Navigation arrows for chat screen */}
-        <div className="chat-nav-controls">
-        <button 
-          className="chat-nav-btn chat-nav-up"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowChatScreen(false);
-            // Always allow going back, even if at video 0
-            if (currentVideoIndex > 0) {
-              setCurrentVideoIndex(prev => prev - 1);
-            }
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-          </svg>
-        </button>
-        
-        <button 
-          className="chat-nav-btn chat-nav-down"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowChatScreen(false);
-            // Always allow going forward, even if at last video
-            if (currentVideoIndex < videos.length - 1) {
-              setCurrentVideoIndex(prev => prev + 1);
-            }
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
-          </svg>
-        </button>
+        <div className="nav-controls">
+          <button 
+            className="nav-btn nav-up"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowChatScreen(false);
+              // Always allow going back, even if at video 0
+              if (currentVideoIndex > 0) {
+                setCurrentVideoIndex(prev => prev - 1);
+              }
+            }}
+            disabled={currentVideoIndex === 0}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+          </button>
+          
+          <button 
+            className="nav-btn nav-down"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowChatScreen(false);
+              // Always allow going forward, even if at last video
+              if (currentVideoIndex < videos.length - 1) {
+                setCurrentVideoIndex(prev => prev + 1);
+              }
+            }}
+            disabled={currentVideoIndex === videos.length - 1}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+            </svg>
+          </button>
         </div>
       </div>
     );
