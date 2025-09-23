@@ -108,262 +108,31 @@ body {
   cursor: pointer;
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 1rem;
-  gap: 1rem;
-}
+/* Old controls and select styles removed - using TikTok interface only */
 
-.controls-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+/* Old grid and card styles removed - using TikTok interface only */
 
-.controls-right {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
+/* Old video-info styles removed - using TikTok interface only */
 
-.select {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: white;
-}
+/* Old grid-specific styles removed - using TikTok interface only */
 
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
+/* Old button and action styles removed - using TikTok interface only */
 
-.video-card {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
+/* Old pagination styles removed - using TikTok interface only */
 
-.video-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.video-thumbnail {
-  position: relative;
-  aspect-ratio: 16/9;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-placeholder {
-  text-align: center;
-}
-
-.video-icon {
-  width: 3rem;
-  height: 3rem;
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
-}
-
-.video-format {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.play-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0);
-  transition: background 0.2s;
-  cursor: pointer;
-}
-
-.video-card:hover .play-overlay {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.play-button {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  padding: 0.75rem;
-  transition: background 0.2s;
-}
-
-.video-card:hover .play-button {
-  background: white;
-}
-
-.play-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #374151;
-  margin-left: 0.125rem;
-}
-
-.video-info {
-  padding: 1rem;
-}
-
-/* Clickable video info link */
-.video-info-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  border-radius: 8px;
-  padding: 4px;
-  margin: -4px;
-}
-
-.video-info-link:hover {
-  transform: scale(1.02);
-  opacity: 0.9;
-}
-
-.video-info-link:hover .profile-pic-small {
-  transform: scale(1.05);
-}
-
-.video-info-link:hover .username {
-  color: #ff6b9d;
-}
-
-.video-info-link:hover .hashtag {
-  background-color: rgba(255, 107, 157, 0.2);
-  color: #ff6b9d;
-}
-
-.video-title {
-  font-weight: 500;
-  color: #111827;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.video-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-bottom: 0.75rem;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.video-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  border: none;
-}
-
-.btn-primary {
-  flex: 1;
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.page-btn {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid #d1d5db;
-  background: white;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.page-btn:hover {
-  background: #f9fafb;
-}
-
-.page-btn.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ViceLoop Loading Screen */
+/* ViceLoop Loading Screen - Updated for TikTok interface */
 .viceloop-loading {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  height: 100dvh;
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-}
-
-/* Desktop loading screen */
-@media screen and (min-width: 1024px) {
-  .viceloop-loading {
-    background: linear-gradient(135deg, #111 0%, #222 50%, #111 100%);
-  }
-  
-  .viceloop-loading-title {
-    font-size: 32px;
-  }
 }
 
 .viceloop-loading-content {
@@ -374,7 +143,6 @@ body {
   align-items: center;
   gap: 30px;
 }
-
 
 .viceloop-loading-title {
   font-size: 28px;
@@ -426,64 +194,7 @@ body {
   }
 }
 
-/* Legacy loading styles for compatibility */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50vh;
-}
-
-.loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.error {
-  text-align: center;
-  padding: 3rem;
-}
-
-.error-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.error h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #111827;
-  margin-bottom: 0.5rem;
-}
-
-.error p {
-  color: #6b7280;
-  margin-bottom: 1rem;
-}
-
-.retry-btn {
-  background: #3b82f6;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.retry-btn:hover {
-  background: #2563eb;
-}
+/* Legacy styles removed - using TikTok interface only */
 
 .empty-state {
   text-align: center;
@@ -544,12 +255,53 @@ body {
     top: 15px;
     left: 50%;
     transform: translateX(-50%);
-    max-width: calc(100vw - 40px);
+    max-width: calc(100vw - 30px);
+    min-width: 160px;
+    border-radius: 22px;
+    background: linear-gradient(135deg,
+      rgba(255, 107, 157, 0.18) 0%,
+      rgba(78, 205, 196, 0.18) 25%,
+      rgba(69, 183, 209, 0.18) 50%,
+      rgba(150, 206, 180, 0.18) 75%,
+      rgba(254, 202, 87, 0.18) 100%);
+    backdrop-filter: blur(16px);
+    box-shadow:
+      0 5px 20px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    white-space: nowrap; /* Prevent text wrapping */
   }
-  
+
   .deepmode-link {
     padding: 10px 16px;
-    font-size: 13px;
+    font-size: 11px;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
+  }
+
+  .created-text {
+    font-size: 11px;
+    letter-spacing: 0.2px;
+  }
+
+  .deepmode-text {
+    font-size: 12px;
+    letter-spacing: 0.1px;
+    /* Ensure visibility on mobile */
+    background: linear-gradient(45deg,
+      #ff4757 0%,
+      #ff6b9d 20%,
+      #ff8c42 40%,
+      #feca57 60%,
+      #4ecdc4 80%,
+      #45b7d1 100%);
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #ff6b9d; /* Fallback */
+    -webkit-text-stroke: 0.3px rgba(255, 255, 255, 0.4);
   }
   
   /* Make video player consistent */
@@ -607,7 +359,7 @@ body {
   }
 }
 
-/* DeepMode Pill at top */
+/* Enhanced DeepMode Pill */
 .deepmode-pill-top {
   position: fixed;
   top: 20px;
@@ -615,10 +367,19 @@ body {
   z-index: 1000;
   border-radius: 25px;
   overflow: hidden;
-  backdrop-filter: blur(15px);
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(18px);
+  background: linear-gradient(135deg,
+    rgba(255, 107, 157, 0.12) 0%,
+    rgba(78, 205, 196, 0.12) 25%,
+    rgba(69, 183, 209, 0.12) 50%,
+    rgba(150, 206, 180, 0.12) 75%,
+    rgba(254, 202, 87, 0.12) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.35),
+    0 3px 12px rgba(255, 107, 157, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Desktop pill positioning */
@@ -629,63 +390,181 @@ body {
   }
 }
 
+.deepmode-pill-top:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.45),
+    0 6px 20px rgba(255, 107, 157, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg,
+    rgba(255, 107, 157, 0.2) 0%,
+    rgba(78, 205, 196, 0.2) 25%,
+    rgba(69, 183, 209, 0.2) 50%,
+    rgba(150, 206, 180, 0.2) 75%,
+    rgba(254, 202, 87, 0.2) 100%);
+}
+
 .deepmode-link {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   color: white;
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
   text-align: center;
-  transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  line-height: 1.2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
-.deepmode-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+.deepmode-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent);
+  transition: left 0.6s ease;
+}
+
+.deepmode-link:hover::before {
+  left: 100%;
 }
 
 .created-text {
-  color: #000;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
   display: inline-block;
   vertical-align: middle;
   line-height: 1.2;
-  font-size: 14px;
+  font-size: 13px;
   height: auto;
   position: relative;
-  top: 2px;
+  top: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .deepmode-text {
-  background: linear-gradient(45deg, #ff6b9d, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3);
-  background-size: 400% 400%;
+  background: linear-gradient(45deg,
+    #ff4757 0%,
+    #ff6b9d 20%,
+    #ff8c42 40%,
+    #feca57 60%,
+    #4ecdc4 80%,
+    #45b7d1 100%);
+  background-size: 300% 300%;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradientShift 3s ease-in-out infinite;
+  animation: gradientShift 4s ease-in-out infinite;
   font-weight: 700;
   display: inline-block;
   vertical-align: middle;
   line-height: 1.2;
   font-size: 14px;
   height: auto;
+  text-shadow: none;
+  letter-spacing: 0.2px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+  /* Ensure text is always visible */
+  color: #ff6b9d; /* Fallback color */
+  -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.3);
+  /* Additional visibility enhancements */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Ensure the gradient is always visible */
+  min-height: 1.2em;
 }
 
 @keyframes gradientShift {
-  0% {
+  0%, 100% {
     background-position: 0% 50%;
+    filter: hue-rotate(0deg) saturate(1.4) brightness(1.1);
+  }
+  25% {
+    background-position: 100% 50%;
+    filter: hue-rotate(15deg) saturate(1.5) brightness(1.1);
   }
   50% {
-    background-position: 100% 50%;
+    background-position: 100% 0%;
+    filter: hue-rotate(0deg) saturate(1.4) brightness(1.1);
+  }
+  75% {
+    background-position: 0% 0%;
+    filter: hue-rotate(-15deg) saturate(1.5) brightness(1.1);
+  }
+}
+
+/* Additional DeepMode pill enhancements */
+.deepmode-pill-top::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg,
+    rgba(255, 107, 157, 0.25),
+    rgba(78, 205, 196, 0.25),
+    rgba(69, 183, 209, 0.25),
+    rgba(150, 206, 180, 0.25),
+    rgba(254, 202, 87, 0.25));
+  border-radius: 26px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: blur(6px);
+}
+
+.deepmode-pill-top:hover::before {
+  opacity: 0.5;
+}
+
+.deepmode-link:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Pulse animation for extra flair */
+@keyframes pillPulse {
+  0% {
+    box-shadow:
+      0 6px 24px rgba(0, 0, 0, 0.35),
+      0 3px 12px rgba(255, 107, 157, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 6px 24px rgba(0, 0, 0, 0.35),
+      0 3px 12px rgba(255, 107, 157, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 0 16px rgba(255, 107, 157, 0.08);
   }
   100% {
-    background-position: 0% 50%;
+    box-shadow:
+      0 6px 24px rgba(0, 0, 0, 0.35),
+      0 3px 12px rgba(255, 107, 157, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
+}
+
+.deepmode-pill-top {
+  animation: pillPulse 6s ease-in-out infinite;
 }
 
 
@@ -1145,6 +1024,18 @@ body {
 }
 
 /* Model profile styles */
+.video-info-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.video-info-link:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
+}
+
 .user-profile {
   display: flex;
   align-items: center;
@@ -1260,20 +1151,7 @@ body {
   justify-content: center;
 }
 
-.deepmode-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.2;
-}
-
-.created-text {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  font-weight: 400;
-  margin-bottom: 2px;
-}
+/* Duplicate DeepMode styles removed - using main definitions above */
 
 .deepmode-gradient {
   font-size: 16px;
@@ -1295,22 +1173,38 @@ body {
   height: 100vh;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: 1000;
   animation: chatScreenFadeIn 0.5s ease-out;
   cursor: pointer;
+  padding-bottom: 120px; /* Add bottom padding to push content up from bottom */
 }
 
 /* Desktop chat screen positioning */
 @media screen and (min-width: 1024px) {
   .chat-screen {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    align-items: flex-end;
+    padding-bottom: 120px; /* Even more padding for larger desktop screens */
   }
-  
+
   .chat-screen-content {
     max-width: 420px;
     padding: 35px 25px;
+  }
+}
+
+/* Mobile chat screen positioning */
+@media screen and (max-width: 768px) {
+  .chat-screen {
+    padding-bottom: 140px; /* Less padding for mobile */
+  }
+
+  .chat-screen-content {
+    max-width: calc(100vw - 40px);
+    padding: 25px 20px;
+    margin-bottom: 20px;
   }
 }
 

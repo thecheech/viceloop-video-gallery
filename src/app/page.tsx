@@ -40,6 +40,7 @@ export default function Home() {
   const [comments, setComments] = useState<Record<string, Array<{id: string, text: string, author: string, timestamp: number}>>>({}); // Comments for each video
   const [newComment, setNewComment] = useState(''); // New comment input
   const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({}); // Track which videos are loading
+  const [videoLoadedStates, setVideoLoadedStates] = useState<Record<string, boolean>>({}); // Track which videos have loaded at least once
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,10 +88,14 @@ export default function Home() {
         }));
       }, 300);
     } else {
-      setVideoLoadingStates(prev => ({
-        ...prev,
-        [videoId]: isLoading
-      }));
+      // Only show loading spinner if video hasn't loaded yet (prevent spinner during loops)
+      const hasLoaded = videoLoadedStates[videoId] || false;
+      if (!hasLoaded) {
+        setVideoLoadingStates(prev => ({
+          ...prev,
+          [videoId]: isLoading
+        }));
+      }
     }
   };
 
@@ -98,7 +103,14 @@ export default function Home() {
     return videoLoadingStates[videoId] || false;
   };
 
-  const safePlay = async (el: HTMLVideoElement | null) => {
+  const setVideoLoaded = (videoId: string, hasLoaded: boolean) => {
+    setVideoLoadedStates(prev => ({
+      ...prev,
+      [videoId]: hasLoaded
+    }));
+  };
+
+  const safePlay = useCallback(async (el: HTMLVideoElement | null) => {
     if (!el) return;
     try {
       await el.play();
@@ -108,7 +120,7 @@ export default function Home() {
         setShowPlayButton(true);
       }
     }
-  };
+  }, [hasUserInteracted]);
 
   // Toggle like for a video
   const toggleLike = (videoId: string) => {
@@ -802,6 +814,8 @@ export default function Home() {
               }}
               onLoadedData={() => {
                 setVideoLoading(video.id, false);
+                // Mark video as loaded for the first time
+                setVideoLoaded(video.id, true);
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
@@ -813,18 +827,26 @@ export default function Home() {
               }}
               onCanPlay={() => {
                 setVideoLoading(video.id, false);
+                // Mark video as loaded for the first time
+                setVideoLoaded(video.id, true);
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onCanPlayThrough={() => {
                 setVideoLoading(video.id, false);
+                // Mark video as loaded for the first time
+                setVideoLoaded(video.id, true);
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onWaiting={() => {
-                setVideoLoading(video.id, true);
+                // Only show loading if video hasn't loaded yet (prevent spinner during loop buffering)
+                const hasLoaded = videoLoadedStates[video.id] || false;
+                if (!hasLoaded) {
+                  setVideoLoading(video.id, true);
+                }
               }}
               onPlaying={() => {
                 setVideoLoading(video.id, false);
@@ -833,7 +855,15 @@ export default function Home() {
                 setVideoLoading(video.id, false);
               }}
               onStalled={() => {
-                setVideoLoading(video.id, true);
+                // Only show loading if video hasn't loaded yet
+                const hasLoaded = videoLoadedStates[video.id] || false;
+                if (!hasLoaded) {
+                  setVideoLoading(video.id, true);
+                }
+              }}
+              onEnded={() => {
+                // Reset loaded state when video actually ends (not looping)
+                setVideoLoaded(video.id, false);
               }}
             />
             
