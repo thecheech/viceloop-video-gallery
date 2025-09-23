@@ -130,7 +130,7 @@ async function hasProfileImage(videoFilename: string, s3Client: S3Client): Promi
         exists: true,
         profileImageUrl: `/api/profile-image/${encodeURIComponent(`${baseName}_profile.jpg`)}`
       };
-    } catch (error) {
+    } catch {
       // Profile image doesn't exist in R2
       return { exists: false };
     }

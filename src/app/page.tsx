@@ -328,7 +328,7 @@ export default function Home() {
         container.removeEventListener('wheel', handleWheel);
       }
     };
-  }, [videos.length, currentVideoIndex, showChatScreen]);
+  }, [videos.length, currentVideoIndex, showChatScreen, videoCount]);
 
   // Handle video play/pause with debounce to avoid AbortError
   useEffect(() => {
@@ -363,7 +363,7 @@ export default function Home() {
         playTimeoutRef.current = null;
       }
     };
-  }, [currentVideoIndex, isPlaying, showChatScreen]);
+  }, [currentVideoIndex, isPlaying, showChatScreen, safePlay]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -608,7 +608,7 @@ export default function Home() {
       document.removeEventListener('touchstart', handleChatTouchStart);
       document.removeEventListener('touchend', handleChatTouchEnd);
     };
-  }, [showChatScreen, navigateToNext, navigateToPrevious]);
+  }, [showChatScreen, navigateToNext, navigateToPrevious, currentVideoIndex, videos.length]);
 
   // Auto-timeout for chat screen to prevent getting stuck
   useEffect(() => {
