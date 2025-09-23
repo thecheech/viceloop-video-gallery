@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
 import path from 'path';
 
@@ -111,22 +111,29 @@ function getRandomLikes(): number {
 }
 
 // Helper function to check if profile image exists for a video
-function hasProfileImage(videoFilename: string): { exists: boolean; profileImageUrl?: string } {
+async function hasProfileImage(videoFilename: string, s3Client: S3Client): Promise<{ exists: boolean; profileImageUrl?: string }> {
   try {
     // Extract the base name without extension
     const baseName = videoFilename.replace(/\.[^/.]+$/, '');
+    const profileImageKey = `profiles/${baseName}_profile.jpg`;
     
-    // Check if profile image exists in the local directory
-    const profileImagePath = path.join(process.cwd(), 'promptchan-scrapper', 'downloads', 'profile', `${baseName}_profile.jpg`);
-    
-    if (fs.existsSync(profileImagePath)) {
+    // Check if profile image exists in R2
+    try {
+      const headCommand = new HeadObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Key: profileImageKey,
+      });
+      
+      await s3Client.send(headCommand);
+      
       return {
         exists: true,
         profileImageUrl: `/api/profile-image/${encodeURIComponent(`${baseName}_profile.jpg`)}`
       };
+    } catch (error) {
+      // Profile image doesn't exist in R2
+      return { exists: false };
     }
-    
-    return { exists: false };
   } catch (error) {
     console.error('Error checking profile image:', error);
     return { exists: false };
@@ -170,19 +177,21 @@ export async function GET(request: NextRequest) {
     
     // Filter video files
     const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
-    const videoFiles = objects
-      .filter(obj => {
-        if (!obj.Key) return false;
-        const fileName = obj.Key.split('/').pop() || '';
-        const ext = fileName.split('.').pop()?.toLowerCase() || '';
-        return videoExtensions.includes(`.${ext}`);
-      })
-      .map(obj => {
+    const videoObjects = objects.filter(obj => {
+      if (!obj.Key) return false;
+      const fileName = obj.Key.split('/').pop() || '';
+      const ext = fileName.split('.').pop()?.toLowerCase() || '';
+      return videoExtensions.includes(`.${ext}`);
+    });
+
+    // Process videos and check for profile images
+    const videoFiles = await Promise.all(
+      videoObjects.map(async (obj) => {
         const fileName = obj.Key!.split('/').pop() || '';
         const ext = fileName.split('.').pop()?.toLowerCase() || '';
         
         // Check if profile image exists for this video
-        const profileInfo = hasProfileImage(fileName);
+        const profileInfo = await hasProfileImage(fileName, s3Client);
         
         // Get model profile data
         const baseName = fileName.replace(/\.[^/.]+$/, '');
@@ -203,7 +212,7 @@ export async function GET(request: NextRequest) {
           extension: `.${ext}`,
           createdAt: obj.LastModified || new Date(),
           url: `/api/video/${encodeURIComponent(fileName)}`,
-          profileImageUrl: profileInfo.profileImageUrl,
+          profileImageUrl: profileInfo.profileImageUrl || "/viceloop-logo.jpg", // Fallback to default logo
           hasProfileImage: profileInfo.exists,
           modelName: modelName,
           verified: modelProfile.verified || Math.random() > 0.3, // 70% chance of being verified
@@ -212,21 +221,22 @@ export async function GET(request: NextRequest) {
           likes: randomLikes
         };
       })
+    );
+
+    // Filter videos and match search (include all videos, with or without profile images)
+    const filteredVideos = videoFiles
       .filter(video => 
-        // Only include videos that have profile images
-        video.hasProfileImage && (
-          search === '' || 
-          video.filename.toLowerCase().includes(search.toLowerCase())
-        )
+        search === '' || 
+        video.filename.toLowerCase().includes(search.toLowerCase())
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by newest first
 
     // Calculate pagination
-    const total = videoFiles.length;
+    const total = filteredVideos.length;
     const totalPages = Math.ceil(total / limit);
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedVideos = videoFiles.slice(startIndex, endIndex);
+    const paginatedVideos = filteredVideos.slice(startIndex, endIndex);
 
     return NextResponse.json({
       videos: paginatedVideos,
