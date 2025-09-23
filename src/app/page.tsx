@@ -58,10 +58,10 @@ export default function Home() {
   const addComment = (videoId: string) => {
     if (newComment.trim()) {
       const comment = {
-        id: Date.now().toString(),
+        id: typeof window !== 'undefined' ? Date.now().toString() : Math.random().toString(),
         text: newComment.trim(),
         author: 'You',
-        timestamp: Date.now()
+        timestamp: typeof window !== 'undefined' ? Date.now() : Date.now()
       };
       
       setComments(prev => ({
@@ -188,12 +188,15 @@ export default function Home() {
         const data = await response.json();
         
         // Shuffle the videos array
-        const shuffledVideos = [...data.videos].sort(() => Math.random() - 0.5);
+        // Shuffle videos client-side only to avoid hydration mismatch
+        const shuffledVideos = typeof window !== 'undefined'
+          ? [...data.videos].sort(() => Math.random() - 0.5)
+          : data.videos;
         setVideos(shuffledVideos);
         
         // Initialize loading states for all videos
         const initialLoadingStates: Record<string, boolean> = {};
-        shuffledVideos.forEach(video => {
+        shuffledVideos.forEach((video: Video) => {
           initialLoadingStates[video.id] = true; // Start with all videos as loading
         });
         setVideoLoadingStates(initialLoadingStates);
@@ -217,37 +220,37 @@ export default function Home() {
             id: '1',
             text: 'Average\nNo ring?',
             author: 'Average',
-            timestamp: Date.now() - 17 * 60000 // 17 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 17 * 60000 : 1700000000000
           },
           {
             id: '2',
             text: 'I recognize that art style...',
             author: '-XyZen-xM',
-            timestamp: Date.now() - 20 * 60000 // 20 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 20 * 60000 : 1700000000000
           },
           {
             id: '3',
             text: 'pls make Roblox Catalog avatar creation plsss',
             author: 'Sebastian',
-            timestamp: Date.now() - 15 * 60000 // 15 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 15 * 60000 : 1700000000000
           },
           {
             id: '4',
             text: 'I came...',
             author: 'fwuffles',
-            timestamp: Date.now() - 16 * 60000 // 16 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 16 * 60000 : 1700000000000
           },
           {
             id: '5',
             text: 'I LOVE HOW YOU DREW SEBASTIAN[happy]',
             author: '-Frye★Anguilla-',
-            timestamp: Date.now() - 31 * 60000 // 31 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 31 * 60000 : 1700000000000
           },
           {
             id: '6',
             text: 'this is painter approved!!',
             author: 'p.AI.nter',
-            timestamp: Date.now() - 12 * 60000 // 12 minutes ago
+            timestamp: typeof window !== 'undefined' ? Date.now() - 12 * 60000 : 1700000000000
           }
         ]
       };
@@ -730,7 +733,7 @@ export default function Home() {
         
         {/* Navigation arrows for chat screen */}
         <div className="nav-controls">
-          <button 
+          <button
             className="nav-btn nav-up"
             onClick={(e) => {
               e.stopPropagation();
@@ -747,7 +750,7 @@ export default function Home() {
             </svg>
           </button>
           
-          <button 
+          <button
             className="nav-btn nav-down"
             onClick={(e) => {
               e.stopPropagation();
@@ -769,7 +772,7 @@ export default function Home() {
   }
 
   return (
-    <div className="tiktok-container" ref={containerRef}>
+    <div className="tiktok-container" ref={containerRef} suppressHydrationWarning={true}>
       {/* DeepMode Pill */}
       <div className="deepmode-pill-top">
         <a 
@@ -1056,7 +1059,9 @@ export default function Home() {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                         </svg>
-                        <span className="tiktok-like-count">{Math.floor(Math.random() * 10)}</span>
+                        <span className="tiktok-like-count" suppressHydrationWarning={true}>
+                          {typeof window !== 'undefined' ? Math.floor(Math.random() * 10) : 5}
+                        </span>
                       </button>
                     </div>
                   </div>
