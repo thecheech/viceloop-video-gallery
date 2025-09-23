@@ -355,6 +355,17 @@ body {
   z-index: 9999;
 }
 
+/* Desktop loading screen */
+@media screen and (min-width: 1024px) {
+  .viceloop-loading {
+    background: linear-gradient(135deg, #111 0%, #222 50%, #111 100%);
+  }
+  
+  .viceloop-loading-title {
+    font-size: 32px;
+  }
+}
+
 .viceloop-loading-content {
   text-align: center;
   color: white;
@@ -546,7 +557,7 @@ body {
     width: 100%;
     height: 100%;
     max-height: 100dvh;
-    object-fit: cover;
+    object-fit: contain;
   }
 }
 
@@ -561,12 +572,46 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Desktop optimizations for MacBook Pro 14" and larger screens */
+@media screen and (min-width: 1024px) {
+  .tiktok-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+  }
+  
+  .video-feed {
+    width: min(90vh, 420px); /* Limit width to maintain mobile-like aspect ratio */
+    height: 100vh;
+    max-height: 100vh;
+    background: #000;
+    border-radius: 12px;
+    overflow: visible; /* Remove clipping that hides videos 2-5 */
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  }
+  
+  .video-slide {
+    width: 100%;
+    height: 100vh;
+    border-radius: 12px;
+    overflow: visible; /* Remove clipping that hides videos 2-5 */
+  }
+  
+  .video-player {
+    width: 100%;
+    height: 100vh;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+}
+
 /* DeepMode Pill at top */
 .deepmode-pill-top {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 20px;
   z-index: 1000;
   border-radius: 25px;
   overflow: hidden;
@@ -576,11 +621,19 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Desktop pill positioning */
+@media screen and (min-width: 1024px) {
+  .deepmode-pill-top {
+    top: 30px;
+    right: calc(50vw - min(45vh, 210px) - 60px);
+  }
+}
+
 .deepmode-link {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 14px 24px;
   color: white;
   text-decoration: none;
   font-weight: 600;
@@ -588,6 +641,7 @@ body {
   text-align: center;
   transition: all 0.3s ease;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
 }
 
 .deepmode-link:hover {
@@ -600,11 +654,11 @@ body {
   font-weight: 700;
   display: inline-block;
   vertical-align: middle;
-  line-height: 1;
+  line-height: 1.2;
   font-size: 14px;
-  height: 1em;
+  height: auto;
   position: relative;
-  top: 4px;
+  top: 2px;
 }
 
 .deepmode-text {
@@ -617,9 +671,9 @@ body {
   font-weight: 700;
   display: inline-block;
   vertical-align: middle;
-  line-height: 1;
+  line-height: 1.2;
   font-size: 14px;
-  height: 1em;
+  height: auto;
 }
 
 @keyframes gradientShift {
@@ -703,7 +757,7 @@ body {
 .video-player {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   cursor: pointer;
 }
 
@@ -753,6 +807,46 @@ body {
   align-items: flex-end;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
   min-height: 200px;
+}
+
+/* Desktop bottom section adjustments */
+@media screen and (min-width: 1024px) {
+  .bottom-section {
+    padding: 16px;
+    min-height: 180px;
+    position: fixed;
+    bottom: 0;
+    left: calc(50vw - min(45vh, 210px) - 20px);
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+    z-index: 10;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+  }
+  
+  .video-info {
+    max-width: 300px;
+    position: relative;
+    z-index: 15;
+  }
+  
+  .username {
+    font-size: 15px;
+  }
+  
+  .description {
+    font-size: 14px;
+    max-width: 280px;
+  }
+  
+  .action-buttons {
+    gap: 12px;
+    position: fixed;
+    right: calc(50vw - min(45vh, 210px) - 60px);
+    bottom: 30px;
+    flex-direction: column;
+  }
 }
 
 .video-info {
@@ -896,13 +990,23 @@ body {
 .nav-controls {
   position: absolute;
   right: 20px;
-  top: 35%;
+  top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   z-index: 20;
+}
+
+/* Desktop navigation controls positioning */
+@media screen and (min-width: 1024px) {
+  .nav-controls {
+    position: fixed;
+    right: calc(50vw - min(45vh, 210px) - 60px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }
 
 .nav-btn {
@@ -1196,6 +1300,25 @@ body {
   z-index: 1000;
   animation: chatScreenFadeIn 0.5s ease-out;
   cursor: pointer;
+}
+
+/* Desktop chat screen positioning */
+@media screen and (min-width: 1024px) {
+  .chat-screen {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  }
+  
+  .chat-screen-content {
+    max-width: 420px;
+    padding: 35px 25px;
+  }
+  
+  .chat-nav-controls {
+    position: absolute;
+    right: calc(50vw + min(45vh, 210px) + 30px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }
 
 @keyframes chatScreenFadeIn {

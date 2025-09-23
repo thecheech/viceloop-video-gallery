@@ -41,6 +41,7 @@ export default function Home() {
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wheelLockRef = useRef<boolean>(false);
   const lastWheelAtRef = useRef<number>(0);
+  const chatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Removed banner messages - now using single DeepMode pill
 
@@ -259,6 +260,20 @@ export default function Home() {
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
+      // If chat screen is showing, allow easy exit
+      if (showChatScreen) {
+        switch (e.key) {
+          case 'Escape':
+          case 'ArrowUp':
+          case 'ArrowDown':
+          case ' ':
+            e.preventDefault();
+            setShowChatScreen(false);
+            break;
+        }
+        return;
+      }
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
@@ -301,7 +316,7 @@ export default function Home() {
 
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [currentVideoIndex, videos.length, showChatScreen]);
+  }, [currentVideoIndex, videos.length, showChatScreen, videoCount]);
 
   const togglePlayPause = () => {
     setHasUserInteracted(true);
@@ -314,13 +329,14 @@ export default function Home() {
     setShowPlayButton(false);
     if (currentVideoIndex < videos.length - 1) {
       const newIndex = currentVideoIndex + 1;
-      setCurrentVideoIndex(newIndex);
+      const newVideoCount = videoCount + 1;
+      setVideoCount(newVideoCount);
       
       // Show chat screen every 5 videos (only if not already showing)
-      if ((newIndex + 1) % 5 === 0 && !showChatScreen) {
-        // Preload the next video before showing chat screen
+      if (newVideoCount % 5 === 0 && !showChatScreen) {
+        // Show chat screen with current video model (the 5th video)
         setIsEnteringChat(true);
-        const nextVideoIndex = newIndex + 1;
+        const nextVideoIndex = newIndex;
         if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
           videoRefs.current[nextVideoIndex]!.preload = "auto";
         }
@@ -329,9 +345,12 @@ export default function Home() {
           setShowChatScreen(true);
           setIsEnteringChat(false);
         }, 200);
+      } else {
+        // Normal navigation
+        setCurrentVideoIndex(newIndex);
       }
     }
-  }, [currentVideoIndex, videos.length, showChatScreen]);
+  }, [currentVideoIndex, videos.length, showChatScreen, videoCount]);
 
   const goToPrevious = useCallback(() => {
     setHasUserInteracted(true);
@@ -472,6 +491,27 @@ export default function Home() {
     };
   }, [showChatScreen, navigateToNext, navigateToPrevious]);
 
+  // Auto-timeout for chat screen to prevent getting stuck
+  useEffect(() => {
+    if (showChatScreen) {
+      // Clear any existing timeout
+      if (chatTimeoutRef.current) {
+        clearTimeout(chatTimeoutRef.current);
+      }
+      
+      // Set auto-timeout to exit chat screen after 10 seconds
+      chatTimeoutRef.current = setTimeout(() => {
+        setShowChatScreen(false);
+      }, 10000);
+      
+      return () => {
+        if (chatTimeoutRef.current) {
+          clearTimeout(chatTimeoutRef.current);
+        }
+      };
+    }
+  }, [showChatScreen]);
+
   if (loading) {
     return (
       <div className="viceloop-loading">
@@ -564,11 +604,11 @@ export default function Home() {
           onClick={(e) => {
             e.stopPropagation();
             setShowChatScreen(false);
+            // Always allow going back, even if at video 0
             if (currentVideoIndex > 0) {
               setCurrentVideoIndex(prev => prev - 1);
             }
           }}
-          disabled={currentVideoIndex === 0}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
             <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
@@ -580,11 +620,11 @@ export default function Home() {
           onClick={(e) => {
             e.stopPropagation();
             setShowChatScreen(false);
+            // Always allow going forward, even if at last video
             if (currentVideoIndex < videos.length - 1) {
               setCurrentVideoIndex(prev => prev + 1);
             }
           }}
-          disabled={currentVideoIndex === videos.length - 1}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
             <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
