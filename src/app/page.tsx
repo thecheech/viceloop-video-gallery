@@ -39,6 +39,7 @@ export default function Home() {
   const [showComments, setShowComments] = useState(false); // Show/hide comments section
   const [comments, setComments] = useState<Record<string, Array<{id: string, text: string, author: string, timestamp: number}>>>({}); // Comments for each video
   const [newComment, setNewComment] = useState(''); // New comment input
+  const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({}); // Track which videos are loading
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,6 +74,28 @@ export default function Home() {
 
   const getCommentCount = (videoId: string) => {
     return comments[videoId]?.length || 0;
+  };
+
+  // Video loading state management
+  const setVideoLoading = (videoId: string, isLoading: boolean) => {
+    if (!isLoading) {
+      // Add a small delay before hiding the spinner to prevent flashing
+      setTimeout(() => {
+        setVideoLoadingStates(prev => ({
+          ...prev,
+          [videoId]: false
+        }));
+      }, 300);
+    } else {
+      setVideoLoadingStates(prev => ({
+        ...prev,
+        [videoId]: isLoading
+      }));
+    }
+  };
+
+  const isVideoLoading = (videoId: string) => {
+    return videoLoadingStates[videoId] || false;
   };
 
   const safePlay = async (el: HTMLVideoElement | null) => {
@@ -155,6 +178,14 @@ export default function Home() {
         // Shuffle the videos array
         const shuffledVideos = [...data.videos].sort(() => Math.random() - 0.5);
         setVideos(shuffledVideos);
+        
+        // Initialize loading states for all videos
+        const initialLoadingStates: Record<string, boolean> = {};
+        shuffledVideos.forEach(video => {
+          initialLoadingStates[video.id] = true; // Start with all videos as loading
+        });
+        setVideoLoadingStates(initialLoadingStates);
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -686,38 +717,40 @@ export default function Home() {
         </div>
         
         {/* Navigation arrows for chat screen */}
-        <div className="chat-nav-controls">
-        <button 
-          className="chat-nav-btn chat-nav-up"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowChatScreen(false);
-            // Always allow going back, even if at video 0
-            if (currentVideoIndex > 0) {
-              setCurrentVideoIndex(prev => prev - 1);
-            }
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-          </svg>
-        </button>
-        
-        <button 
-          className="chat-nav-btn chat-nav-down"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowChatScreen(false);
-            // Always allow going forward, even if at last video
-            if (currentVideoIndex < videos.length - 1) {
-              setCurrentVideoIndex(prev => prev + 1);
-            }
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
-          </svg>
-        </button>
+        <div className="nav-controls">
+          <button 
+            className="nav-btn nav-up"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowChatScreen(false);
+              // Always allow going back, even if at video 0
+              if (currentVideoIndex > 0) {
+                setCurrentVideoIndex(prev => prev - 1);
+              }
+            }}
+            disabled={currentVideoIndex === 0}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+          </button>
+          
+          <button 
+            className="nav-btn nav-down"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowChatScreen(false);
+              // Always allow going forward, even if at last video
+              if (currentVideoIndex < videos.length - 1) {
+                setCurrentVideoIndex(prev => prev + 1);
+              }
+            }}
+            disabled={currentVideoIndex === videos.length - 1}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+            </svg>
+          </button>
         </div>
       </div>
     );
@@ -764,28 +797,56 @@ export default function Home() {
                       : "none"
               }
               onClick={togglePlayPause}
+              onLoadStart={() => {
+                setVideoLoading(video.id, true);
+              }}
+              onLoadedData={() => {
+                setVideoLoading(video.id, false);
+                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                  safePlay(videoRefs.current[index]);
+                }
+              }}
               onLoadedMetadata={() => {
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onCanPlay={() => {
+                setVideoLoading(video.id, false);
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onCanPlayThrough={() => {
+                setVideoLoading(video.id, false);
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
-              onLoadStart={() => {
-                // Allow continuous loading without interruption
-                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
-                  safePlay(videoRefs.current[index]);
-                }
+              onWaiting={() => {
+                setVideoLoading(video.id, true);
+              }}
+              onPlaying={() => {
+                setVideoLoading(video.id, false);
+              }}
+              onError={() => {
+                setVideoLoading(video.id, false);
+              }}
+              onStalled={() => {
+                setVideoLoading(video.id, true);
               }}
             />
+            
+            {/* Video Loading Spinner */}
+            {isVideoLoading(video.id) && index === currentVideoIndex && (
+              <div className="video-loading-spinner-overlay">
+                <div className="video-loading-spinner-container">
+                  <div className="video-loading-spinner-ring"></div>
+                  <div className="video-loading-spinner-ring"></div>
+                  <div className="video-loading-spinner-ring"></div>
+                </div>
+              </div>
+            )}
             
             {isTransitioning && index === currentVideoIndex && (
               <div className="transition-overlay">
