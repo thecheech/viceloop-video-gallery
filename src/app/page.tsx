@@ -36,6 +36,9 @@ export default function Home() {
   const [hasUserInteracted, setHasUserInteracted] = useState(false); // Track first user interaction for mobile auto-play
   const [showPlayButton, setShowPlayButton] = useState(false); // Show tap-to-play button when auto-play fails
   const [videoCount, setVideoCount] = useState(0); // Track how many videos we've viewed
+  const [showComments, setShowComments] = useState(false); // Show/hide comments section
+  const [comments, setComments] = useState<Record<string, Array<{id: string, text: string, author: string, timestamp: number}>>>({}); // Comments for each video
+  const [newComment, setNewComment] = useState(''); // New comment input
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,6 +47,33 @@ export default function Home() {
   const chatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Removed banner messages - now using single DeepMode pill
+
+  // Comment management functions
+  const toggleComments = () => {
+    setShowComments(prev => !prev);
+  };
+
+  const addComment = (videoId: string) => {
+    if (newComment.trim()) {
+      const comment = {
+        id: Date.now().toString(),
+        text: newComment.trim(),
+        author: 'You',
+        timestamp: Date.now()
+      };
+      
+      setComments(prev => ({
+        ...prev,
+        [videoId]: [...(prev[videoId] || []), comment]
+      }));
+      
+      setNewComment('');
+    }
+  };
+
+  const getCommentCount = (videoId: string) => {
+    return comments[videoId]?.length || 0;
+  };
 
   const safePlay = async (el: HTMLVideoElement | null) => {
     if (!el) return;
@@ -134,6 +164,53 @@ export default function Home() {
 
     fetchVideos();
   }, []);
+
+  // Initialize sample comments for demonstration
+  useEffect(() => {
+    if (videos.length > 0) {
+      const sampleComments = {
+        [videos[0]?.id]: [
+          {
+            id: '1',
+            text: 'Average\nNo ring?',
+            author: 'Average',
+            timestamp: Date.now() - 17 * 60000 // 17 minutes ago
+          },
+          {
+            id: '2',
+            text: 'I recognize that art style...',
+            author: '-XyZen-xM',
+            timestamp: Date.now() - 20 * 60000 // 20 minutes ago
+          },
+          {
+            id: '3',
+            text: 'pls make Roblox Catalog avatar creation plsss',
+            author: 'Sebastian',
+            timestamp: Date.now() - 15 * 60000 // 15 minutes ago
+          },
+          {
+            id: '4',
+            text: 'I came...',
+            author: 'fwuffles',
+            timestamp: Date.now() - 16 * 60000 // 16 minutes ago
+          },
+          {
+            id: '5',
+            text: 'I LOVE HOW YOU DREW SEBASTIAN[happy]',
+            author: '-Frye★Anguilla-',
+            timestamp: Date.now() - 31 * 60000 // 31 minutes ago
+          },
+          {
+            id: '6',
+            text: 'this is painter approved!!',
+            author: 'p.AI.nter',
+            timestamp: Date.now() - 12 * 60000 // 12 minutes ago
+          }
+        ]
+      };
+      setComments(sampleComments);
+    }
+  }, [videos]);
 
   // Help first video load on mobile devices
   useEffect(() => {
@@ -260,6 +337,17 @@ export default function Home() {
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
+      // If comments are showing, allow easy exit
+      if (showComments) {
+        switch (e.key) {
+          case 'Escape':
+            e.preventDefault();
+            setShowComments(false);
+            break;
+        }
+        return;
+      }
+
       // If chat screen is showing, allow easy exit
       if (showChatScreen) {
         switch (e.key) {
@@ -316,7 +404,7 @@ export default function Home() {
 
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [currentVideoIndex, videos.length, showChatScreen, videoCount]);
+  }, [currentVideoIndex, videos.length, showChatScreen, videoCount, showComments]);
 
   const togglePlayPause = () => {
     setHasUserInteracted(true);
@@ -793,6 +881,16 @@ export default function Home() {
                       <span>{likedVideos.has(video.id) ? (video.likes || 0) + 1 : video.likes || 0}</span>
                     </button>
                     
+                    <button 
+                      className="action-btn"
+                      onClick={() => toggleComments()}
+                    >
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                        <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                      </svg>
+                      <span>{getCommentCount(video.id)}</span>
+                    </button>
+                    
                     <button className="action-btn">
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
                         <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92S19.61 16.08 18 16.08z"/>
@@ -807,6 +905,114 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      {/* TikTok-style Comments Side Panel */}
+      {showComments && videos.length > 0 && (
+        <div 
+          className="tiktok-comments-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowComments(false);
+            }
+          }}
+        >
+          <div className="tiktok-comments-panel">
+            <div className="tiktok-comments-header">
+              <h3 className="tiktok-comments-title">Comments ({getCommentCount(videos[currentVideoIndex]?.id)})</h3>
+              <button 
+                className="tiktok-comments-close"
+                onClick={() => setShowComments(false)}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="tiktok-comments-list">
+              {comments[videos[currentVideoIndex]?.id]?.map((comment) => (
+                <div key={comment.id} className="tiktok-comment-item">
+                  <div className="tiktok-comment-avatar">
+                    <div className="tiktok-avatar-circle">
+                      {comment.author.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                  
+                  <div className="tiktok-comment-content">
+                    <div className="tiktok-comment-header">
+                      <span className="tiktok-comment-username">{comment.author}</span>
+                      <span className="tiktok-comment-timestamp">
+                        {(() => {
+                          const now = Date.now();
+                          const diff = now - comment.timestamp;
+                          const minutes = Math.floor(diff / 60000);
+                          const hours = Math.floor(minutes / 60);
+                          const days = Math.floor(hours / 24);
+                          
+                          if (days > 0) return `${days}d`;
+                          if (hours > 0) return `${hours}h`;
+                          if (minutes > 0) return `${minutes}m`;
+                          return 'now';
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="tiktok-comment-text">{comment.text}</div>
+                    
+                    <div className="tiktok-comment-actions">
+                      <button className="tiktok-comment-reply">Reply</button>
+                      <button className="tiktok-comment-like">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                        <span className="tiktok-like-count">{Math.floor(Math.random() * 10)}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {(!comments[videos[currentVideoIndex]?.id] || comments[videos[currentVideoIndex]?.id].length === 0) && (
+                <div className="tiktok-no-comments">
+                  <div className="tiktok-no-comments-text">No comments yet.</div>
+                  <div className="tiktok-no-comments-subtext">Be the first to comment!</div>
+                </div>
+              )}
+            </div>
+            
+            <div className="tiktok-comments-input">
+              <div className="tiktok-input-container">
+                <input
+                  type="text"
+                  placeholder="Add comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      addComment(videos[currentVideoIndex]?.id);
+                    }
+                  }}
+                  className="tiktok-comment-input"
+                />
+                <div className="tiktok-input-actions">
+                  <button className="tiktok-emoji-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  </button>
+                  <button 
+                    className="tiktok-post-btn"
+                    onClick={() => addComment(videos[currentVideoIndex]?.id)}
+                    disabled={!newComment.trim()}
+                  >
+                    Post
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation controls */}
       <div className="nav-controls">

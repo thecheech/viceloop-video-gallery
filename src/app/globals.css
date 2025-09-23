@@ -1725,3 +1725,337 @@ body {
     transform: scale(1.05);
   }
 }
+
+/* TikTok-style Comments Panel */
+.tiktok-comments-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+  animation: tiktokCommentsOverlayIn 0.3s ease-out;
+}
+
+@keyframes tiktokCommentsOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tiktok-comments-panel {
+  width: 450px;
+  max-width: 90vw;
+  height: 100vh;
+  background: #161823;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  animation: tiktokCommentsPanelIn 0.3s ease-out;
+  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes tiktokCommentsPanelIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.tiktok-comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.tiktok-comments-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tiktok-comments-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tiktok-comments-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.tiktok-comments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.tiktok-comment-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.2s ease;
+}
+
+.tiktok-comment-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tiktok-comment-avatar {
+  flex-shrink: 0;
+}
+
+.tiktok-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b9d, #4ecdc4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tiktok-comment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.tiktok-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tiktok-comment-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tiktok-comment-timestamp {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tiktok-comment-text {
+  font-size: 15px;
+  line-height: 1.4;
+  color: white;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.tiktok-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tiktok-comment-reply {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.tiktok-comment-reply:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tiktok-comment-like {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.tiktok-comment-like:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tiktok-like-count {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tiktok-no-comments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tiktok-no-comments-text {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.tiktok-no-comments-subtext {
+  font-size: 14px;
+}
+
+.tiktok-comments-input {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.tiktok-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.tiktok-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.3);
+}
+
+.tiktok-comment-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  padding: 8px 0;
+}
+
+.tiktok-comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tiktok-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tiktok-emoji-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tiktok-emoji-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tiktok-post-btn {
+  background: #fe2c55;
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.tiktok-post-btn:hover:not(:disabled) {
+  background: #e91e63;
+}
+
+.tiktok-post-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive for TikTok comments */
+@media (max-width: 768px) {
+  .tiktok-comments-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  .tiktok-comments-header {
+    padding: 12px 16px;
+  }
+  
+  .tiktok-comments-title {
+    font-size: 16px;
+  }
+  
+  .tiktok-comment-item {
+    padding: 12px 16px;
+  }
+  
+  .tiktok-avatar-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .tiktok-comment-username {
+    font-size: 13px;
+  }
+  
+  .tiktok-comment-text {
+    font-size: 14px;
+  }
+  
+  .tiktok-comments-input {
+    padding: 12px 16px;
+  }
+  
+  .tiktok-input-container {
+    padding: 6px 12px;
+  }
+}
