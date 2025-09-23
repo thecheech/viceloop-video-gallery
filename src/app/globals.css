@@ -250,44 +250,17 @@ body {
     /* Use consistent height without complex calculations */
   }
   
-  /* Adjust DeepMode pill for mobile */
-  .deepmode-pill-top {
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: calc(100vw - 30px);
-    min-width: 160px;
-    border-radius: 22px;
-    background: linear-gradient(135deg,
-      rgba(255, 107, 157, 0.18) 0%,
-      rgba(78, 205, 196, 0.18) 25%,
-      rgba(69, 183, 209, 0.18) 50%,
-      rgba(150, 206, 180, 0.18) 75%,
-      rgba(254, 202, 87, 0.18) 100%);
-    backdrop-filter: blur(16px);
-    box-shadow:
-      0 5px 20px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-
-  .deepmode-link {
-    padding: 10px 16px;
-    font-size: 11px;
-    gap: 4px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-width: fit-content;
-  }
 
   .created-text {
-    font-size: 11px;
-    letter-spacing: 0.2px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    font-weight: 500;
   }
 
   .deepmode-text {
-    font-size: 12px;
-    letter-spacing: 0.1px;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+    font-weight: 700;
     /* Ensure visibility on mobile */
     background: linear-gradient(45deg,
       #ff4757 0%,
@@ -359,11 +332,12 @@ body {
   }
 }
 
-/* Enhanced DeepMode Pill */
+/* Enhanced DeepMode Pill - Centered and Longer */
 .deepmode-pill-top {
-  position: fixed;
+  position: fixed !important;
   top: 20px;
-  right: 20px;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   z-index: 1000;
   border-radius: 25px;
   overflow: hidden;
@@ -380,18 +354,24 @@ body {
     0 3px 12px rgba(255, 107, 157, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 200px; /* Make pill longer */
+  max-width: calc(100vw - 40px); /* Ensure it doesn't overflow */
+  animation: pillPulse 6s ease-in-out infinite; /* Added pulse animation */
 }
 
-/* Desktop pill positioning */
+/* Desktop pill positioning - Top Right */
 @media screen and (min-width: 1024px) {
   .deepmode-pill-top {
     top: 30px;
-    right: calc(50vw - min(45vh, 210px) - 60px);
+    left: auto !important;
+    right: 30px !important;
+    transform: none !important;
+    /* Override centered positioning for desktop */
   }
 }
 
 .deepmode-pill-top:hover {
-  transform: translateY(-2px) scale(1.01);
+  transform: translateY(-2px) scale(1.01) !important;
   box-shadow:
     0 10px 32px rgba(0, 0, 0, 0.45),
     0 6px 20px rgba(255, 107, 157, 0.15),
@@ -407,8 +387,8 @@ body {
 .deepmode-link {
   display: flex;
   align-items: center;
+  padding: 12px 20px; /* Increased padding for longer pill */
   gap: 8px;
-  padding: 12px 20px;
   color: white;
   text-decoration: none;
   font-weight: 600;
@@ -536,7 +516,7 @@ body {
 }
 
 .deepmode-link:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(-1px) scale(0.98) !important;
   transition: transform 0.1s ease;
 }
 
@@ -563,9 +543,7 @@ body {
   }
 }
 
-.deepmode-pill-top {
-  animation: pillPulse 6s ease-in-out infinite;
-}
+/* Animation moved to main class below */
 
 
 .video-feed {
