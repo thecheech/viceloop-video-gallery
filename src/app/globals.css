@@ -1660,6 +1660,15 @@ body {
   animation-delay: -0.8s;
 }
 
+/* Loading more videos indicator */
+.loading-more-videos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
 @keyframes videoSpinnerRotate {
   0% {
     transform: rotate(0deg);
@@ -1697,21 +1706,164 @@ body {
   animation: pulse 2s ease-in-out infinite;
 }
 
-.play-icon-large {
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
+/* Hide old tap-to-play styles */
+.play-icon-large,
+.tap-to-play-text,
+.tap-to-play-button {
+  display: none !important;
 }
 
-.tap-to-play-button:hover .play-icon-large {
-  opacity: 1;
+/* ViceLoop Play Button - Mobile */
+.viceloop-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
-.tap-to-play-text {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  opacity: 0.9;
+.viceloop-play-button {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  transition: all 0.3s ease;
+  animation: viceLoopPlayPulse 2s ease-in-out infinite;
+}
+
+.viceloop-play-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 107, 157, 0.6);
+  transform: scale(1.05);
+}
+
+.play-button-core {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ff6b9d, #ff0050);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 20px rgba(255, 107, 157, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.viceloop-play-button:hover .play-button-core {
+  background: linear-gradient(135deg, #ff7ba8, #ff1a66);
+  box-shadow:
+    0 0 30px rgba(255, 107, 157, 0.6),
+    inset 0 2px 6px rgba(255, 255, 255, 0.3);
+}
+
+.play-icon-minimal {
+  z-index: 2;
+  position: relative;
+}
+
+.play-icon-minimal svg {
+  width: 28px;
+  height: 28px;
+  fill: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.play-ring-minimal {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px solid #4ecdc4;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: viceLoopRingRotate 3s linear infinite;
+}
+
+.play-pulse-minimal {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  border: 1px solid #45b7d1;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: viceLoopPulse 2.5s ease-in-out infinite;
+  animation-delay: -1.25s;
+}
+
+@keyframes viceLoopPlayPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes viceLoopRingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes viceLoopPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+}
+
+/* Mobile-only ViceLoop Play Button */
+@media screen and (max-width: 768px) {
+  .viceloop-play-overlay {
+    z-index: 600;
+  }
+
+  /* Position play button slightly above center when spinner is present */
+  .video-loading-spinner-overlay + .viceloop-play-overlay,
+  .viceloop-play-overlay:has(+ .video-loading-spinner-overlay) {
+    top: 45%;
+  }
+
+  /* Adjust play button position when spinner is visible */
+  .video-loading-spinner-container + .viceloop-play-overlay,
+  .viceloop-play-overlay:has(+ .video-loading-spinner-container) {
+    top: 45%;
+  }
+}
+
+/* Desktop - hide ViceLoop play button */
+@media screen and (min-width: 769px) {
+  .viceloop-play-overlay,
+  .viceloop-play-button {
+    display: none !important;
+  }
 }
 
 @keyframes pulse {

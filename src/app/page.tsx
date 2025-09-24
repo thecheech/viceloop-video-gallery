@@ -40,12 +40,20 @@ export default function Home() {
   const [comments, setComments] = useState<Record<string, Array<{id: string, text: string, author: string, timestamp: number}>>>({}); // Comments for each video
   const [newComment, setNewComment] = useState(''); // New comment input
   const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({}); // Track which videos are loading
+  const [currentPage, setCurrentPage] = useState(1); // Track current page for pagination
+  const [hasMoreVideos, setHasMoreVideos] = useState(true); // Track if more videos are available
+  const [currentBatch, setCurrentBatch] = useState(1); // Track current batch number
+  const [batchSize] = useState(15); // Number of videos per batch
+  const [batchThreshold] = useState(5); // Load next batch when this many videos remain in current batch
+  const [allBatches, setAllBatches] = useState<Record<number, Video[]>>({}); // Store all loaded batches
+  const [isLoadingNextBatch, setIsLoadingNextBatch] = useState(false); // Track if we're loading the next batch
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wheelLockRef = useRef<boolean>(false);
   const lastWheelAtRef = useRef<number>(0);
   const chatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null); // For lazy loading
 
   // Removed banner messages - now using single DeepMode pill
 
@@ -168,33 +176,70 @@ export default function Home() {
     }
   }, [connectionType]);
 
-  // Fetch videos
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const response = await fetch('/api/videos?page=1&limit=100');
-        const data = await response.json();
-        
-        // Shuffle the videos array
-        const shuffledVideos = [...data.videos].sort(() => Math.random() - 0.5);
-        setVideos(shuffledVideos);
-        
-        // Initialize loading states for all videos
-        const initialLoadingStates: Record<string, boolean> = {};
-        shuffledVideos.forEach(video => {
-          initialLoadingStates[video.id] = true; // Start with all videos as loading
-        });
-        setVideoLoadingStates(initialLoadingStates);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching videos:', error);
-        setLoading(false);
-      }
-    };
+  // Fetch videos with batch loading
+  const fetchVideos = useCallback(async (page: number, batchNumber: number) => {
+    try {
+      setIsLoadingNextBatch(true);
+      const response = await fetch(`/api/videos?page=${page}&limit=${batchSize}`);
+      const data = await response.json();
 
-    fetchVideos();
-  }, []);
+      if (data.videos.length === 0) {
+        setHasMoreVideos(false);
+        setIsLoadingNextBatch(false);
+        return;
+      }
+
+      // Shuffle the videos array
+      const shuffledVideos = [...data.videos].sort(() => Math.random() - 0.5);
+
+      // Store videos in the specific batch
+      setAllBatches(prev => ({
+        ...prev,
+        [batchNumber]: shuffledVideos
+      }));
+
+      // Initialize loading states for new videos
+      const initialLoadingStates: Record<string, boolean> = {};
+      shuffledVideos.forEach(video => {
+        initialLoadingStates[video.id] = true; // Start with videos as loading
+      });
+      setVideoLoadingStates(prev => ({ ...prev, ...initialLoadingStates }));
+
+      setIsLoadingNextBatch(false);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      setIsLoadingNextBatch(false);
+    }
+  }, [batchSize]);
+
+  // Helper function to get current batch videos
+  const getCurrentBatchVideos = useCallback(() => {
+    return allBatches[currentBatch] || [];
+  }, [allBatches, currentBatch]);
+
+  // Helper function to load next batch when needed
+  const loadNextBatchIfNeeded = useCallback((currentVideoIndex: number) => {
+    const currentBatchVideos = getCurrentBatchVideos();
+    const videosInCurrentBatch = currentBatchVideos.length;
+
+    // If we're within the threshold and have more videos available, load next batch
+    if (currentVideoIndex >= videosInCurrentBatch - batchThreshold &&
+        hasMoreVideos &&
+        !isLoadingNextBatch &&
+        !allBatches[currentBatch + 1]) {
+
+      const nextBatchNumber = currentBatch + 1;
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchVideos(nextPage, nextBatchNumber);
+    }
+  }, [getCurrentBatchVideos, currentBatch, hasMoreVideos, isLoadingNextBatch, allBatches, currentPage, fetchVideos, batchThreshold]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchVideos(1, 1);
+    setLoading(false); // Set loading to false immediately since we load the first batch
+  }, [fetchVideos]);
 
   // Initialize sample comments for demonstration
   useEffect(() => {
@@ -243,9 +288,40 @@ export default function Home() {
     }
   }, [videos]);
 
+  // Intersection Observer for lazy loading next batch
+  useEffect(() => {
+    if (!hasMoreVideos || loading || isLoadingNextBatch) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreVideos) {
+          loadNextBatchIfNeeded(currentVideoIndex);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    // Observe the last video element of current batch
+    const currentBatchVideos = getCurrentBatchVideos();
+    const lastVideoIndex = currentBatchVideos.length - 1;
+    const lastVideoElement = containerRef.current?.querySelector(`.video-slide:nth-child(${lastVideoIndex + 1})`);
+    if (lastVideoElement) {
+      observer.observe(lastVideoElement);
+    }
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [getCurrentBatchVideos, hasMoreVideos, loading, isLoadingNextBatch, currentVideoIndex, loadNextBatchIfNeeded]);
+
   // Help first video load on mobile devices
   useEffect(() => {
-    if (videos.length > 0 && currentVideoIndex === 0) {
+    const currentBatchVideos = getCurrentBatchVideos();
+    if (currentBatchVideos.length > 0 && currentVideoIndex === 0) {
       const firstVideo = videoRefs.current[0];
       if (firstVideo) {
         // Small delay to ensure video element is ready, only if not already loaded
@@ -256,7 +332,7 @@ export default function Home() {
         }, 100);
       }
     }
-  }, [videos, currentVideoIndex]);
+  }, [getCurrentBatchVideos, currentVideoIndex]);
 
   // Handle play button click
   const handlePlayButtonClick = () => {
@@ -286,18 +362,19 @@ export default function Home() {
       lastWheelAtRef.current = now;
 
       if (e.deltaY > 10) {
-        const newIndex = Math.min(currentVideoIndex + 1, videos.length - 1);
+        const currentBatchVideos = getCurrentBatchVideos();
+        const videosInCurrentBatch = currentBatchVideos.length;
+        const newIndex = (currentVideoIndex + 1) % videosInCurrentBatch; // Loop back to 0 when reaching the end
         if (newIndex !== currentVideoIndex) {
           const newVideoCount = videoCount + 1;
           setVideoCount(newVideoCount);
-          
+
           // Check if we should show chat screen every 5 videos BEFORE moving to next video
           if (newVideoCount % 5 === 0 && !showChatScreen) {
             // Show chat screen with current video model (the 5th video)
             setIsEnteringChat(true);
-            const nextVideoIndex = newIndex;
-            if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
-              videoRefs.current[nextVideoIndex]!.preload = "auto";
+            if (newIndex < videosInCurrentBatch && videoRefs.current[newIndex]) {
+              videoRefs.current[newIndex]!.preload = "auto";
             }
             // Show chat screen after a brief delay to allow preloading
             setTimeout(() => {
@@ -307,6 +384,7 @@ export default function Home() {
           } else {
             // Normal navigation
             setCurrentVideoIndex(newIndex);
+            loadNextBatchIfNeeded(newIndex);
           }
         }
       } else if (e.deltaY < -10) {
@@ -328,7 +406,7 @@ export default function Home() {
         container.removeEventListener('wheel', handleWheel);
       }
     };
-  }, [videos.length, currentVideoIndex, showChatScreen, videoCount]);
+  }, [getCurrentBatchVideos, currentVideoIndex, showChatScreen, videoCount, loadNextBatchIfNeeded]);
 
   // Handle video play/pause with debounce to avoid AbortError
   useEffect(() => {
@@ -365,6 +443,100 @@ export default function Home() {
     };
   }, [currentVideoIndex, isPlaying, showChatScreen, safePlay]);
 
+  const togglePlayPause = () => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
+    setIsPlaying(prev => !prev);
+  };
+
+  const goToNext = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
+    const currentBatchVideos = getCurrentBatchVideos();
+    const videosInCurrentBatch = currentBatchVideos.length;
+
+    // Check if we're at the end of the current batch
+    if (currentVideoIndex >= videosInCurrentBatch - 1) {
+      // Move to next batch if it exists
+      if (allBatches[currentBatch + 1]) {
+        // Clean up current batch from memory (except keep current video temporarily for smooth transition)
+        setTimeout(() => {
+          setAllBatches(prev => {
+            const newBatches = { ...prev };
+            delete newBatches[currentBatch]; // Remove current batch from memory
+            return newBatches;
+          });
+        }, 1000); // Clean up after 1 second to allow smooth transition
+
+        setCurrentBatch(prev => prev + 1);
+        setCurrentVideoIndex(0); // Start at first video of next batch
+
+        // Load next batch if needed
+        loadNextBatchIfNeeded(0);
+      } else {
+        // Load next batch
+        loadNextBatchIfNeeded(currentVideoIndex);
+        // Stay at current index until next batch loads
+        return;
+      }
+    } else {
+      const newIndex = currentVideoIndex + 1;
+      const newVideoCount = videoCount + 1;
+      setVideoCount(newVideoCount);
+
+      // Show chat screen every 5 videos (only if not already showing)
+      if (newVideoCount % 5 === 0 && !showChatScreen) {
+        // Show chat screen with current video model (the 5th video)
+        setIsEnteringChat(true);
+        if (newIndex < videosInCurrentBatch && videoRefs.current[newIndex]) {
+          videoRefs.current[newIndex]!.preload = "auto";
+        }
+        // Show chat screen after a brief delay to allow preloading
+        setTimeout(() => {
+          setShowChatScreen(true);
+          setIsEnteringChat(false);
+        }, 200);
+      } else {
+        // Normal navigation
+        setCurrentVideoIndex(newIndex);
+        loadNextBatchIfNeeded(newIndex);
+      }
+    }
+  }, [currentVideoIndex, getCurrentBatchVideos, allBatches, currentBatch, videoCount, showChatScreen, loadNextBatchIfNeeded]);
+
+  const goToPrevious = useCallback(() => {
+    setHasUserInteracted(true);
+    setShowPlayButton(false);
+
+    // Check if we're at the beginning of the current batch
+    if (currentVideoIndex === 0) {
+      // Move to previous batch if it exists
+      if (currentBatch > 1 && allBatches[currentBatch - 1]) {
+        const prevBatch = currentBatch - 1;
+        const prevBatchVideos = allBatches[prevBatch];
+        if (prevBatchVideos) {
+          // Clean up current batch from memory
+          setTimeout(() => {
+            setAllBatches(prev => {
+              const newBatches = { ...prev };
+              delete newBatches[currentBatch]; // Remove current batch from memory
+              return newBatches;
+            });
+          }, 1000);
+
+          setCurrentBatch(prevBatch);
+          setCurrentVideoIndex(prevBatchVideos.length - 1); // Go to last video of previous batch
+        }
+      } else {
+        // If no previous batch, just go to last video of current batch
+        const currentBatchVideos = getCurrentBatchVideos();
+        setCurrentVideoIndex(currentBatchVideos.length - 1);
+      }
+    } else {
+      setCurrentVideoIndex(prev => prev - 1);
+    }
+  }, [currentVideoIndex, currentBatch, allBatches, getCurrentBatchVideos]);
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -396,35 +568,11 @@ export default function Home() {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          if (currentVideoIndex > 0) {
-            setCurrentVideoIndex(prev => prev - 1);
-          }
+          goToPrevious();
           break;
         case 'ArrowDown':
           e.preventDefault();
-          if (currentVideoIndex < videos.length - 1) {
-            const newIndex = currentVideoIndex + 1;
-            const newVideoCount = videoCount + 1;
-            setVideoCount(newVideoCount);
-            
-            // Check if we should show chat screen every 5 videos BEFORE moving to next video
-            if (newVideoCount % 5 === 0 && !showChatScreen) {
-              // Show chat screen with current video model (the 5th video)
-              setIsEnteringChat(true);
-              const nextVideoIndex = newIndex;
-              if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
-                videoRefs.current[nextVideoIndex]!.preload = "auto";
-              }
-              // Show chat screen after a brief delay to allow preloading
-              setTimeout(() => {
-                setShowChatScreen(true);
-                setIsEnteringChat(false);
-              }, 200);
-            } else {
-              // Normal navigation
-              setCurrentVideoIndex(newIndex);
-            }
-          }
+          goToNext();
           break;
         case ' ':
           e.preventDefault();
@@ -435,85 +583,47 @@ export default function Home() {
 
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [currentVideoIndex, videos.length, showChatScreen, videoCount, showComments]);
-
-  const togglePlayPause = () => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
-    setIsPlaying(prev => !prev);
-  };
-
-  const goToNext = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
-    if (currentVideoIndex < videos.length - 1) {
-      const newIndex = currentVideoIndex + 1;
-      const newVideoCount = videoCount + 1;
-      setVideoCount(newVideoCount);
-      
-      // Show chat screen every 5 videos (only if not already showing)
-      if (newVideoCount % 5 === 0 && !showChatScreen) {
-        // Show chat screen with current video model (the 5th video)
-        setIsEnteringChat(true);
-        const nextVideoIndex = newIndex;
-        if (nextVideoIndex < videos.length && videoRefs.current[nextVideoIndex]) {
-          videoRefs.current[nextVideoIndex]!.preload = "auto";
-        }
-        // Show chat screen after a brief delay to allow preloading
-        setTimeout(() => {
-          setShowChatScreen(true);
-          setIsEnteringChat(false);
-        }, 200);
-      } else {
-        // Normal navigation
-        setCurrentVideoIndex(newIndex);
-      }
-    }
-  }, [currentVideoIndex, videos.length, showChatScreen, videoCount]);
-
-  const goToPrevious = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
-    if (currentVideoIndex > 0) {
-      setCurrentVideoIndex(prev => prev - 1);
-    }
-  }, [currentVideoIndex]);
-
+  }, [goToNext, goToPrevious, showChatScreen, showComments]);
 
   // Navigation functions that don't increment video count (for chat screen navigation)
   const navigateToNext = useCallback(() => {
     setHasUserInteracted(true);
     setShowPlayButton(false);
-    if (currentVideoIndex < videos.length - 1) {
-      setIsExitingChat(true);
-      setIsTransitioning(true);
-      // Smooth transition without interrupting preloading
+    setIsExitingChat(true);
+    setIsTransitioning(true);
+    const currentBatchVideos = getCurrentBatchVideos();
+    const videosInCurrentBatch = currentBatchVideos.length;
+
+    // Smooth transition without interrupting preloading
+    setTimeout(() => {
+      const nextIndex = (currentVideoIndex + 1) % videosInCurrentBatch;
+      setCurrentVideoIndex(nextIndex);
+      loadNextBatchIfNeeded(nextIndex);
       setTimeout(() => {
-        setCurrentVideoIndex(prev => prev + 1);
-        setTimeout(() => {
-          setIsTransitioning(false);
-          setIsExitingChat(false);
-        }, 300);
-      }, 100);
-    }
-  }, [currentVideoIndex, videos.length]);
+        setIsTransitioning(false);
+        setIsExitingChat(false);
+      }, 300);
+    }, 100);
+  }, [getCurrentBatchVideos, currentVideoIndex, loadNextBatchIfNeeded]);
 
   const navigateToPrevious = useCallback(() => {
     setHasUserInteracted(true);
     setShowPlayButton(false);
-    if (currentVideoIndex > 0) {
-      setIsExitingChat(true);
-      setIsTransitioning(true);
-      // Smooth transition without interrupting preloading
+    setIsExitingChat(true);
+    setIsTransitioning(true);
+    const currentBatchVideos = getCurrentBatchVideos();
+    const videosInCurrentBatch = currentBatchVideos.length;
+
+    // Smooth transition without interrupting preloading
+    setTimeout(() => {
+      const prevIndex = currentVideoIndex === 0 ? videosInCurrentBatch - 1 : currentVideoIndex - 1;
+      setCurrentVideoIndex(prevIndex);
       setTimeout(() => {
-        setCurrentVideoIndex(prev => prev - 1);
-        setTimeout(() => {
-          setIsTransitioning(false);
-          setIsExitingChat(false);
-        }, 300);
-      }, 100);
-    }
-  }, [currentVideoIndex]);
+        setIsTransitioning(false);
+        setIsExitingChat(false);
+      }, 300);
+    }, 100);
+  }, [getCurrentBatchVideos, currentVideoIndex]);
 
   // Handle swipe gestures for regular video navigation
   useEffect(() => {
@@ -539,7 +649,7 @@ export default function Home() {
       // Only register swipe if it's quick enough and has enough distance
       if (deltaTime < 300 && Math.abs(deltaY) > 50) {
         if (deltaY > 0) {
-          // Swipe up - go to next video
+          // Swipe up - go to next video (batch-aware navigation)
           goToNext();
         } else {
           // Swipe down - go to previous video
@@ -583,17 +693,13 @@ export default function Home() {
       // Only register swipe if it's quick enough and has enough distance
       if (deltaTime < 300 && Math.abs(deltaY) > 50) {
         if (deltaY > 0) {
-          // Swipe up - go to next video
+          // Swipe up - go to next video (infinite scrolling)
           setShowChatScreen(false);
-          if (currentVideoIndex < videos.length - 1) {
-            setCurrentVideoIndex(prev => prev + 1);
-          }
+          setCurrentVideoIndex(prev => (prev + 1) % videos.length);
         } else {
-          // Swipe down - go to previous video
+          // Swipe down - go to previous video (infinite scrolling)
           setShowChatScreen(false);
-          if (currentVideoIndex > 0) {
-            setCurrentVideoIndex(prev => prev - 1);
-          }
+          setCurrentVideoIndex(prev => prev === 0 ? videos.length - 1 : prev - 1);
         }
       }
 
@@ -617,12 +723,12 @@ export default function Home() {
       if (chatTimeoutRef.current) {
         clearTimeout(chatTimeoutRef.current);
       }
-      
+
       // Set auto-timeout to exit chat screen after 10 seconds
       chatTimeoutRef.current = setTimeout(() => {
         setShowChatScreen(false);
       }, 10000);
-      
+
       return () => {
         if (chatTimeoutRef.current) {
           clearTimeout(chatTimeoutRef.current);
@@ -631,7 +737,27 @@ export default function Home() {
     }
   }, [showChatScreen]);
 
-  if (loading) {
+  // Reset pagination and observer on page changes (for debugging pagination issues)
+  useEffect(() => {
+    // Disconnect and reconnect observer when currentVideoIndex changes significantly
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Re-observe the last video element after updates
+    setTimeout(() => {
+      if (observerRef.current && hasMoreVideos) {
+        const lastVideoElement = containerRef.current?.querySelector('.video-slide:last-child');
+        if (lastVideoElement) {
+          observerRef.current.observe(lastVideoElement);
+        }
+      }
+    }, 100);
+  }, [currentVideoIndex, videos.length]);
+
+  const currentBatchVideos = getCurrentBatchVideos();
+
+  if (loading && currentBatchVideos.length === 0) {
     return (
       <div className="viceloop-loading">
         <div className="viceloop-loading-content">
@@ -646,7 +772,7 @@ export default function Home() {
     );
   }
 
-  if (videos.length === 0) {
+  if (currentBatchVideos.length === 0 && !hasMoreVideos) {
     return (
       <div className="empty-state">
         <h3>No videos found</h3>
@@ -656,8 +782,8 @@ export default function Home() {
   }
 
   // Show chat screen every 5 videos
-  if (showChatScreen && videos.length > 0) {
-    const currentVideo = videos[currentVideoIndex];
+  if (showChatScreen && getCurrentBatchVideos().length > 0) {
+    const currentVideo = getCurrentBatchVideos()[currentVideoIndex];
     return (
       <div 
         className="chat-screen"
@@ -718,34 +844,28 @@ export default function Home() {
         
         {/* Navigation arrows for chat screen */}
         <div className="nav-controls">
-          <button 
+          <button
             className="nav-btn nav-up"
             onClick={(e) => {
               e.stopPropagation();
               setShowChatScreen(false);
-              // Always allow going back, even if at video 0
-              if (currentVideoIndex > 0) {
-                setCurrentVideoIndex(prev => prev - 1);
-              }
+              // Always allow going back (batch-aware navigation)
+              goToPrevious();
             }}
-            disabled={currentVideoIndex === 0}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
               <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
             </svg>
           </button>
           
-          <button 
+          <button
             className="nav-btn nav-down"
             onClick={(e) => {
               e.stopPropagation();
               setShowChatScreen(false);
-              // Always allow going forward, even if at last video
-              if (currentVideoIndex < videos.length - 1) {
-                setCurrentVideoIndex(prev => prev + 1);
-              }
+              // Always allow going forward (batch-aware navigation)
+              goToNext();
             }}
-            disabled={currentVideoIndex === videos.length - 1}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
               <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
@@ -772,13 +892,13 @@ export default function Home() {
       </div>
 
       {/* Video Feed */}
-      <div 
+      <div
         className="video-feed"
         style={{
           transform: `translateY(-${currentVideoIndex * 100}dvh)`
         }}
       >
-        {videos.map((video, index) => (
+        {getCurrentBatchVideos().map((video, index) => (
           <div key={video.id} className={`video-slide ${isTransitioning ? 'transitioning' : ''}`}>
             <video
               ref={el => { videoRefs.current[index] = el; }}
@@ -788,11 +908,11 @@ export default function Home() {
               muted
               playsInline
               preload={
-                isExitingChat 
+                isExitingChat
                   ? (index === currentVideoIndex + 1 ? "auto" : "none")
                   : isEnteringChat
                     ? (index === currentVideoIndex + 1 ? "auto" : "none")
-                    : index === 0 || Math.abs(index - currentVideoIndex) <= preloadRange 
+                    : Math.abs(index - currentVideoIndex) <= preloadRange
                       ? (connectionType === 'slow-2g' || connectionType === '2g' ? "metadata" : "auto")
                       : "none"
               }
@@ -854,19 +974,22 @@ export default function Home() {
               </div>
             )}
 
-            {/* Tap to play overlay for mobile */}
-            {showPlayButton && index === currentVideoIndex && (
-              <div className="tap-to-play-overlay" onClick={handlePlayButtonClick}>
-                <div className="tap-to-play-button">
-                  <div className="play-icon-large">
-                    <svg width="120" height="120" viewBox="0 0 24 24" fill="white">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                  <div className="tap-to-play-text">Tap to Play</div>
-                </div>
-              </div>
-            )}
+             {/* ViceLoop Play Button - Mobile */}
+             {showPlayButton && index === currentVideoIndex && (
+               <div className="viceloop-play-overlay" onClick={handlePlayButtonClick}>
+                 <div className="viceloop-play-button">
+                   <div className="play-button-core">
+                     <div className="play-icon-minimal">
+                       <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                         <path d="M8 5v14l11-7z"/>
+                       </svg>
+                     </div>
+                     <div className="play-ring-minimal"></div>
+                     <div className="play-pulse-minimal"></div>
+                   </div>
+                 </div>
+               </div>
+             )}
             
             {/* Video overlay UI */}
             <div className="video-overlay">
@@ -965,10 +1088,22 @@ export default function Home() {
             </div>
           </div>
         ))}
+
+        {/* Loading indicator for more videos */}
+        {isLoadingNextBatch && (
+          <div className="loading-more-videos">
+            <div className="video-loading-spinner-container">
+              <div className="video-loading-spinner-ring"></div>
+              <div className="video-loading-spinner-ring"></div>
+              <div className="video-loading-spinner-ring"></div>
+            </div>
+            <p>Loading next batch...</p>
+          </div>
+        )}
       </div>
 
       {/* TikTok-style Comments Side Panel */}
-      {showComments && videos.length > 0 && (
+      {showComments && getCurrentBatchVideos().length > 0 && (
         <div 
           className="tiktok-comments-overlay"
           onClick={(e) => {
@@ -979,7 +1114,7 @@ export default function Home() {
         >
           <div className="tiktok-comments-panel">
             <div className="tiktok-comments-header">
-              <h3 className="tiktok-comments-title">Comments ({getCommentCount(videos[currentVideoIndex]?.id)})</h3>
+              <h3 className="tiktok-comments-title">Comments ({getCommentCount(getCurrentBatchVideos()[currentVideoIndex]?.id)})</h3>
               <button 
                 className="tiktok-comments-close"
                 onClick={() => setShowComments(false)}
@@ -991,7 +1126,7 @@ export default function Home() {
             </div>
             
             <div className="tiktok-comments-list">
-              {comments[videos[currentVideoIndex]?.id]?.map((comment) => (
+              {comments[getCurrentBatchVideos()[currentVideoIndex]?.id]?.map((comment) => (
                 <div key={comment.id} className="tiktok-comment-item">
                   <div className="tiktok-comment-avatar">
                     <div className="tiktok-avatar-circle">
@@ -1033,7 +1168,7 @@ export default function Home() {
                 </div>
               ))}
               
-              {(!comments[videos[currentVideoIndex]?.id] || comments[videos[currentVideoIndex]?.id].length === 0) && (
+              {(!comments[getCurrentBatchVideos()[currentVideoIndex]?.id] || comments[getCurrentBatchVideos()[currentVideoIndex]?.id].length === 0) && (
                 <div className="tiktok-no-comments">
                   <div className="tiktok-no-comments-text">No comments yet.</div>
                   <div className="tiktok-no-comments-subtext">Be the first to comment!</div>
@@ -1050,7 +1185,7 @@ export default function Home() {
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      addComment(videos[currentVideoIndex]?.id);
+                      addComment(getCurrentBatchVideos()[currentVideoIndex]?.id);
                     }
                   }}
                   className="tiktok-comment-input"
@@ -1061,9 +1196,9 @@ export default function Home() {
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     className="tiktok-post-btn"
-                    onClick={() => addComment(videos[currentVideoIndex]?.id)}
+                    onClick={() => addComment(getCurrentBatchVideos()[currentVideoIndex]?.id)}
                     disabled={!newComment.trim()}
                   >
                     Post
@@ -1077,20 +1212,18 @@ export default function Home() {
 
       {/* Navigation controls */}
       <div className="nav-controls">
-        <button 
+        <button
           className="nav-btn nav-up"
           onClick={goToPrevious}
-          disabled={currentVideoIndex === 0}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
             <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
           </svg>
         </button>
         
-        <button 
+        <button
           className="nav-btn nav-down"
           onClick={goToNext}
-          disabled={currentVideoIndex === videos.length - 1}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
             <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
