@@ -541,9 +541,9 @@ body {
   
   /* Adjust DeepMode pill for mobile */
   .deepmode-pill-top {
-    top: 50%;
+    top: 15px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     max-width: calc(100vw - 40px);
     min-width: 220px;
   }
@@ -613,12 +613,12 @@ body {
   }
 }
 
-/* DeepMode Pill at center */
+/* DeepMode Pill at top */
 .deepmode-pill-top {
   position: fixed;
-  top: 2%;
-  left: 20%;
-  transform: translate(-50%, -50%);
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   border-radius: 20px;
   overflow: hidden;
@@ -632,9 +632,9 @@ body {
 /* Desktop pill positioning */
 @media screen and (min-width: 1024px) {
   .deepmode-pill-top {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 20px;
+    left: 60%;
+    transform: translateX(-50%);
   }
 }
 
