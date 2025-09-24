@@ -1125,7 +1125,6 @@ export default function Home() {
               <div className="video-loading-spinner-ring"></div>
               <div className="video-loading-spinner-ring"></div>
             </div>
-            <p>Loading next batch...</p>
           </div>
         )}
       </div>

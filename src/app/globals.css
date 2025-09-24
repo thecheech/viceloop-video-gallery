@@ -640,29 +640,38 @@ body {
 @media screen and (max-width: 1023px) {
   .deepmode-pill-top {
     top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 20%;
+    transform: none;
   }
 }
 
 .deepmode-link {
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   padding: 10px 20px;
   color: white;
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
-  text-align: center;
+  text-align: left;
   transition: all 0.3s ease;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
   white-space: nowrap;
   margin: 0;
-  width: 100%;
+  width: auto;
   box-sizing: border-box;
+}
+
+/* Desktop text alignment override */
+@media screen and (min-width: 1024px) {
+  .deepmode-link {
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
 }
 
 .deepmode-link:hover {
