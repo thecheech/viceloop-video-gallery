@@ -33,8 +33,6 @@ export default function Home() {
   const [preloadRange, setPreloadRange] = useState(1); // How many videos to preload around current
   const [isExitingChat, setIsExitingChat] = useState(false); // Track when exiting chat screen
   const [isEnteringChat, setIsEnteringChat] = useState(false); // Track when entering chat screen
-  const [hasUserInteracted, setHasUserInteracted] = useState(false); // Track first user interaction for mobile auto-play
-  const [showPlayButton, setShowPlayButton] = useState(false); // Show tap-to-play button when auto-play fails
   const [videoCount, setVideoCount] = useState(0); // Track how many videos we've viewed
   const [showComments, setShowComments] = useState(false); // Show/hide comments section
   const [comments, setComments] = useState<Record<string, Array<{id: string, text: string, author: string, timestamp: number}>>>({}); // Comments for each video
@@ -115,12 +113,10 @@ export default function Home() {
     try {
       await el.play();
     } catch (err: unknown) {
-      // Show a tap-to-play overlay on first auto-play failure
-      if (err instanceof Error && err.name === 'NotAllowedError' && !hasUserInteracted) {
-        setShowPlayButton(true);
-      }
+      // Videos should autoplay without user interaction
+      console.warn('Video play failed:', err);
     }
-  }, [hasUserInteracted]);
+  }, []);
 
   // Toggle like for a video
   const toggleLike = (videoId: string) => {
@@ -273,15 +269,6 @@ export default function Home() {
     }
   }, [videos, currentVideoIndex]);
 
-  // Handle play button click
-  const handlePlayButtonClick = () => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
-    const currentVideo = videoRefs.current[currentVideoIndex];
-    if (currentVideo && isPlaying) {
-      safePlay(currentVideo);
-    }
-  };
 
   // Removed banner cycling - using single DeepMode pill
 
@@ -453,14 +440,10 @@ export default function Home() {
   }, [currentVideoIndex, videos.length, showChatScreen, videoCount, showComments]);
 
   const togglePlayPause = () => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
     setIsPlaying(prev => !prev);
   };
 
   const goToNext = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
     if (currentVideoIndex < videos.length - 1) {
       const newIndex = currentVideoIndex + 1;
       const newVideoCount = videoCount + 1;
@@ -487,8 +470,6 @@ export default function Home() {
   }, [currentVideoIndex, videos.length, showChatScreen, videoCount]);
 
   const goToPrevious = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
     if (currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
     }
@@ -497,8 +478,6 @@ export default function Home() {
 
   // Navigation functions that don't increment video count (for chat screen navigation)
   const navigateToNext = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
     if (currentVideoIndex < videos.length - 1) {
       setIsExitingChat(true);
       setIsTransitioning(true);
@@ -514,8 +493,6 @@ export default function Home() {
   }, [currentVideoIndex, videos.length]);
 
   const navigateToPrevious = useCallback(() => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
     if (currentVideoIndex > 0) {
       setIsExitingChat(true);
       setIsTransitioning(true);
@@ -887,19 +864,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Tap to play overlay for mobile */}
-            {showPlayButton && index === currentVideoIndex && (
-              <div className="tap-to-play-overlay" onClick={handlePlayButtonClick}>
-                <div className="tap-to-play-button">
-                  <div className="play-icon-large">
-                    <svg width="120" height="120" viewBox="0 0 24 24" fill="white">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                  <div className="tap-to-play-text">Tap to Play</div>
-                </div>
-              </div>
-            )}
             
             {/* Video overlay UI */}
             <div className="video-overlay">

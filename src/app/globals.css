@@ -1587,59 +1587,6 @@ body {
   }
 }
 
-/* Tap to play overlay for mobile auto-play */
-.tap-to-play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  cursor: pointer;
-}
-
-.tap-to-play-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 30px;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.play-icon-large {
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
-}
-
-.tap-to-play-button:hover .play-icon-large {
-  opacity: 1;
-}
-
-.tap-to-play-text {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  opacity: 0.9;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
 
 /* TikTok-style Comments Panel */
 .tiktok-comments-overlay {
