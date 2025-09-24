@@ -613,12 +613,12 @@ body {
   }
 }
 
-/* DeepMode Pill at top */
+/* DeepMode Pill at center */
 .deepmode-pill-top {
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 2%;
+  left: 20%;
+  transform: translate(-50%, -50%);
   z-index: 1000;
   border-radius: 20px;
   overflow: hidden;
@@ -633,7 +633,7 @@ body {
 @media screen and (min-width: 1024px) {
   .deepmode-pill-top {
     top: 20px;
-    left: 60%;
+    left: 50%;
     transform: translateX(-50%);
   }
 }
