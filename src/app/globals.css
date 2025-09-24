@@ -555,13 +555,15 @@ body {
     white-space: nowrap;
   }
   
-  /* Make video player consistent */
-  .video-player {
-    width: 100%;
-    height: 100%;
-    max-height: 100dvh;
-    object-fit: contain;
-  }
+/* Make video player consistent */
+.video-player {
+  width: 100%;
+  height: 100%;
+  max-height: 100dvh;
+  object-fit: contain;
+  touch-action: none; /* Prevent touch interference with video controls */
+  pointer-events: auto;
+}
 }
 
 /* TikTok-style app styles */
@@ -573,6 +575,7 @@ body {
   background: #000;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  touch-action: pan-y; /* Allow vertical scrolling/panning for swipe gestures */
 }
 
 /* Desktop optimizations for MacBook Pro 14" and larger screens */
@@ -703,6 +706,8 @@ body {
   height: 100vh;
   height: 100dvh; /* Use dynamic viewport height for better mobile support */
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  touch-action: pan-y; /* Allow vertical swiping */
+  user-select: none; /* Prevent text selection during swipes */
 }
 
 .video-slide {

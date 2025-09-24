@@ -238,14 +238,33 @@ export default function Home() {
   // Initial fetch
   useEffect(() => {
     fetchVideos(1, 1);
-    setLoading(false); // Set loading to false immediately since we load the first batch
+    // Small delay to ensure video container is fully rendered before setting loading to false
+    setTimeout(() => {
+      setLoading(false);
+    }, 100);
   }, [fetchVideos]);
+
+  // Ensure touch events are properly set up after loading is complete
+  useEffect(() => {
+    if (!loading && !showChatScreen && !isEnteringChat && !isExitingChat && getCurrentBatchVideos().length > 0) {
+      // Force re-render of touch event handlers after initial load or chat transitions
+      const container = containerRef.current;
+      if (container) {
+        // Add a small delay to ensure DOM is fully updated
+        setTimeout(() => {
+          // This will trigger the touch event useEffect to re-run
+          setCurrentVideoIndex(prev => prev);
+        }, 50);
+      }
+    }
+  }, [loading, showChatScreen, isEnteringChat, isExitingChat, getCurrentBatchVideos]);
 
   // Initialize sample comments for demonstration
   useEffect(() => {
-    if (videos.length > 0) {
+    const currentBatchVideos = getCurrentBatchVideos();
+    if (currentBatchVideos.length > 0) {
       const sampleComments = {
-        [videos[0]?.id]: [
+        [currentBatchVideos[0]?.id]: [
           {
             id: '1',
             text: 'Average\nNo ring?',
@@ -627,15 +646,20 @@ export default function Home() {
 
   // Handle swipe gestures for regular video navigation
   useEffect(() => {
-    // Don't add touch handlers when chat screen is showing
-    if (showChatScreen) return;
+    // Don't add touch handlers when chat screen is showing or during transitions
+    if (showChatScreen || loading || isEnteringChat || isExitingChat) return;
 
     let startY = 0;
     let startTime = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      startTime = Date.now();
+      // Only track touches on the video container, navigation areas, or when no specific target is found
+      const target = e.target as HTMLElement;
+      if (target.closest('.video-feed') || target.closest('.nav-controls') || !target.closest('video')) {
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+        console.log('👆 Touch started on:', target.className || target.tagName);
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
@@ -647,7 +671,11 @@ export default function Home() {
       const deltaTime = endTime - startTime;
 
       // Only register swipe if it's quick enough and has enough distance
-      if (deltaTime < 300 && Math.abs(deltaY) > 50) {
+      if (deltaTime < 400 && Math.abs(deltaY) > 30) {
+        // Prevent default to avoid scrolling interference
+        e.preventDefault();
+        console.log('📱 Swipe detected:', deltaY > 0 ? 'up' : 'down', 'deltaY:', deltaY, 'deltaTime:', deltaTime);
+
         if (deltaY > 0) {
           // Swipe up - go to next video (batch-aware navigation)
           goToNext();
@@ -655,20 +683,29 @@ export default function Home() {
           // Swipe down - go to previous video
           goToPrevious();
         }
+      } else {
+        console.log('❌ Swipe too slow or too short:', deltaTime, Math.abs(deltaY));
       }
 
       startY = 0;
       startTime = 0;
     };
 
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    const container = containerRef.current;
+    if (container) {
+      console.log('🎯 Attaching touch events for video navigation');
+      container.addEventListener('touchstart', handleTouchStart, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchend', handleTouchEnd);
+      if (container) {
+        console.log('🧹 Removing touch events for video navigation');
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchend', handleTouchEnd);
+      }
     };
-  }, [goToNext, goToPrevious, showChatScreen]);
+  }, [goToNext, goToPrevious, showChatScreen, loading, isEnteringChat, isExitingChat, getCurrentBatchVideos, currentVideoIndex]);
 
   // Handle swipe gestures for chat screen
   useEffect(() => {
@@ -678,8 +715,12 @@ export default function Home() {
     let startTime = 0;
 
     const handleChatTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      startTime = Date.now();
+      // Only track touches on the chat screen
+      const target = e.target as HTMLElement;
+      if (target.closest('.chat-screen')) {
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+      }
     };
 
     const handleChatTouchEnd = (e: TouchEvent) => {
@@ -689,17 +730,25 @@ export default function Home() {
       const endTime = Date.now();
       const deltaY = startY - endY;
       const deltaTime = endTime - startTime;
+      const currentBatchVideos = getCurrentBatchVideos();
+      const videosInCurrentBatch = currentBatchVideos.length;
 
       // Only register swipe if it's quick enough and has enough distance
-      if (deltaTime < 300 && Math.abs(deltaY) > 50) {
+      if (deltaTime < 400 && Math.abs(deltaY) > 30) {
+        // Prevent default to avoid scrolling interference
+        e.preventDefault();
+
         if (deltaY > 0) {
-          // Swipe up - go to next video (infinite scrolling)
+          // Swipe up - go to next video (batch-aware navigation)
           setShowChatScreen(false);
-          setCurrentVideoIndex(prev => (prev + 1) % videos.length);
+          const nextIndex = (currentVideoIndex + 1) % videosInCurrentBatch;
+          setCurrentVideoIndex(nextIndex);
+          loadNextBatchIfNeeded(nextIndex);
         } else {
-          // Swipe down - go to previous video (infinite scrolling)
+          // Swipe down - go to previous video (batch-aware navigation)
           setShowChatScreen(false);
-          setCurrentVideoIndex(prev => prev === 0 ? videos.length - 1 : prev - 1);
+          const prevIndex = currentVideoIndex === 0 ? videosInCurrentBatch - 1 : currentVideoIndex - 1;
+          setCurrentVideoIndex(prevIndex);
         }
       }
 
@@ -707,14 +756,19 @@ export default function Home() {
       startTime = 0;
     };
 
-    document.addEventListener('touchstart', handleChatTouchStart, { passive: true });
-    document.addEventListener('touchend', handleChatTouchEnd, { passive: true });
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('touchstart', handleChatTouchStart, { passive: false });
+      container.addEventListener('touchend', handleChatTouchEnd, { passive: false });
+    }
 
     return () => {
-      document.removeEventListener('touchstart', handleChatTouchStart);
-      document.removeEventListener('touchend', handleChatTouchEnd);
+      if (container) {
+        container.removeEventListener('touchstart', handleChatTouchStart);
+        container.removeEventListener('touchend', handleChatTouchEnd);
+      }
     };
-  }, [showChatScreen, navigateToNext, navigateToPrevious, currentVideoIndex, videos.length]);
+  }, [showChatScreen, getCurrentBatchVideos, currentVideoIndex, loadNextBatchIfNeeded]);
 
   // Auto-timeout for chat screen to prevent getting stuck
   useEffect(() => {
@@ -753,7 +807,7 @@ export default function Home() {
         }
       }
     }, 100);
-  }, [currentVideoIndex, videos.length]);
+  }, [currentVideoIndex, getCurrentBatchVideos]);
 
   const currentBatchVideos = getCurrentBatchVideos();
 
