@@ -49,6 +49,8 @@ export const viewport = {
   maximumScale: 1,
   userScalable: false,
   // Remove viewportFit to prevent safe area conflicts
+  viewportFit: 'cover',
+  themeColor: '#000000',
 };
 
 export default function RootLayout({
@@ -79,12 +81,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning={true}>
         {children}
       </body>
     </html>
