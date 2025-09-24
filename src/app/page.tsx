@@ -994,8 +994,11 @@ export default function Home() {
               }}
             />
             
-            {/* Video Loading Spinner */}
-            {isVideoLoading(video.id) && index === currentVideoIndex && (
+            {/* Video Loading Spinner - Don't show when video is playing in loop */}
+            {(() => {
+              const videoElement = videoRefs.current[index];
+              return isVideoLoading(video.id) && index === currentVideoIndex && videoElement && videoElement.paused && videoElement.readyState < 3;
+            })() && (
               <div className="video-loading-spinner-overlay">
                 <div className="video-loading-spinner-container">
                   <div className="video-loading-spinner-ring"></div>
