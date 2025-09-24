@@ -788,26 +788,9 @@ body {
   pointer-events: auto;
 }
 
-.play-pause-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  padding: 20px;
-  animation: fadeInOut 1s ease-in-out;
-}
+/* Removed play-pause-indicator CSS - videos now always play without pause functionality */
 
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-}
-
-.play-icon svg {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
+/* Removed play-icon svg styles - videos now always play without pause functionality */
 
 .bottom-section {
   position: absolute;

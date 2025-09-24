@@ -24,7 +24,7 @@ export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
+  // Removed isPlaying state - videos now always play without pause functionality
   // Removed banner state - using single DeepMode pill
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [showChatScreen, setShowChatScreen] = useState(false);
@@ -358,7 +358,7 @@ export default function Home() {
     setHasUserInteracted(true);
     setShowPlayButton(false);
     const currentVideo = videoRefs.current[currentVideoIndex];
-    if (currentVideo && isPlaying) {
+    if (currentVideo) {
       safePlay(currentVideo);
     }
   };
@@ -427,14 +427,8 @@ export default function Home() {
     };
   }, [getCurrentBatchVideos, currentVideoIndex, showChatScreen, videoCount, loadNextBatchIfNeeded]);
 
-  // Handle video play/pause with debounce to avoid AbortError
+  // Handle video play with debounce to avoid AbortError (no pause functionality)
   useEffect(() => {
-    // Pause all non-active videos first
-    videoRefs.current.forEach((video, index) => {
-      if (video && index !== currentVideoIndex) {
-        if (!video.paused) video.pause();
-      }
-    });
 
     if (playTimeoutRef.current) {
       clearTimeout(playTimeoutRef.current);
@@ -444,12 +438,8 @@ export default function Home() {
     const currentEl = videoRefs.current[currentVideoIndex] || null;
     if (!currentEl) return;
 
-    if (!isPlaying) {
-      currentEl.pause();
-      return;
-    }
-
-    // Small delay so pauses settle before playing current
+    // Always play the current video (no pause functionality)
+    // Small delay to ensure DOM is ready before playing
     playTimeoutRef.current = setTimeout(() => {
       safePlay(currentEl);
     }, 200);
@@ -460,13 +450,9 @@ export default function Home() {
         playTimeoutRef.current = null;
       }
     };
-  }, [currentVideoIndex, isPlaying, showChatScreen, safePlay]);
+  }, [currentVideoIndex, showChatScreen, safePlay]);
 
-  const togglePlayPause = () => {
-    setHasUserInteracted(true);
-    setShowPlayButton(false);
-    setIsPlaying(prev => !prev);
-  };
+  // Removed togglePlayPause function - videos now always play without pause functionality
 
   const goToNext = useCallback(() => {
     setHasUserInteracted(true);
@@ -593,10 +579,7 @@ export default function Home() {
           e.preventDefault();
           goToNext();
           break;
-        case ' ':
-          e.preventDefault();
-          setIsPlaying(prev => !prev);
-          break;
+        // Removed spacebar pause functionality - videos now always play without pause
       }
     };
 
@@ -970,30 +953,30 @@ export default function Home() {
                       ? (connectionType === 'slow-2g' || connectionType === '2g' ? "metadata" : "auto")
                       : "none"
               }
-              onClick={togglePlayPause}
+              // Removed onClick handler - videos now always play without pause functionality
               onLoadStart={() => {
                 setVideoLoading(video.id, true);
               }}
               onLoadedData={() => {
                 setVideoLoading(video.id, false);
-                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                if (index === currentVideoIndex && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onLoadedMetadata={() => {
-                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                if (index === currentVideoIndex && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onCanPlay={() => {
                 setVideoLoading(video.id, false);
-                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                if (index === currentVideoIndex && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onCanPlayThrough={() => {
                 setVideoLoading(video.id, false);
-                if (index === currentVideoIndex && isPlaying && !isTransitioning) {
+                if (index === currentVideoIndex && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
@@ -1047,16 +1030,7 @@ export default function Home() {
             
             {/* Video overlay UI */}
             <div className="video-overlay">
-              {/* Play/Pause indicator */}
-              {!isPlaying && index === currentVideoIndex && (
-                <div className="play-pause-indicator">
-                  <div className="play-icon">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="white">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                </div>
-              )}
+              {/* Removed Play/Pause indicator - videos now always play without pause functionality */}
 
               {/* Bottom info section */}
               <div className="bottom-section">
