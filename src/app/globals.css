@@ -548,12 +548,7 @@ body {
     min-width: 220px;
   }
 
-  .deepmode-link {
-    padding: 8px 28px;
-    font-size: 13px;
-    min-width: 200px;
-    white-space: nowrap;
-  }
+  /* Removed duplicate deepmode-link styles - consolidated below */
   
 /* Make video player consistent */
 .video-player {
@@ -613,12 +608,12 @@ body {
   }
 }
 
-/* DeepMode Pill at center */
+/* DeepMode Pill at top */
 .deepmode-pill-top {
   position: fixed;
-  top: 2%;
-  left: 20%;
-  transform: translate(-50%, -50%);
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   border-radius: 20px;
   overflow: hidden;
@@ -627,6 +622,9 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   min-width: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
 }
 
 /* Desktop pill positioning */
@@ -638,11 +636,21 @@ body {
   }
 }
 
+/* Mobile pill positioning */
+@media screen and (max-width: 1023px) {
+  .deepmode-pill-top {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 .deepmode-link {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 36px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 20px;
   color: white;
   text-decoration: none;
   font-weight: 600;
@@ -651,8 +659,10 @@ body {
   transition: all 0.3s ease;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
-  min-width: 200px;
   white-space: nowrap;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .deepmode-link:hover {
@@ -661,15 +671,15 @@ body {
 }
 
 .created-text {
-  color: #000;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: baseline;
   line-height: 1.2;
   font-size: 14px;
   height: auto;
-  position: relative;
-  top: 2px;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .deepmode-text {
@@ -679,12 +689,14 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradientShift 3s ease-in-out infinite;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: baseline;
   line-height: 1.2;
   font-size: 14px;
   height: auto;
+  margin: 0;
+  text-shadow: none;
 }
 
 @keyframes gradientShift {
@@ -1256,20 +1268,7 @@ body {
   justify-content: center;
 }
 
-.deepmode-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.2;
-}
-
-.created-text {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  font-weight: 400;
-  margin-bottom: 2px;
-}
+/* Removed duplicate text styles - consolidated above */
 
 .deepmode-gradient {
   font-size: 16px;
