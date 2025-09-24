@@ -771,7 +771,11 @@ export default function Home() {
         }}
       >
         {videos.map((video, index) => (
-          <div key={video.id} className={`video-slide ${isTransitioning ? 'transitioning' : ''}`}>
+          <div
+            key={video.id}
+            className={`video-slide ${isTransitioning ? 'transitioning' : ''}`}
+            data-current={index === currentVideoIndex}
+          >
             <video
               ref={el => { videoRefs.current[index] = el; }}
               src={video.url}
@@ -788,7 +792,7 @@ export default function Home() {
                       ? (connectionType === 'slow-2g' || connectionType === '2g' ? "metadata" : "auto")
                       : "none"
               }
-              onClick={togglePlayPause}
+              onClick={index === currentVideoIndex ? togglePlayPause : undefined}
               onLoadStart={() => {
                 setVideoLoading(video.id, true);
               }}
@@ -796,11 +800,13 @@ export default function Home() {
                 setVideoLoading(video.id, false);
                 // Mark video as loaded for the first time
                 setVideoLoaded(video.id, true);
+                // Auto-play when loaded (but only for current video to avoid conflicts)
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
               }}
               onLoadedMetadata={() => {
+                // Auto-play when metadata is loaded (but only for current video to avoid conflicts)
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
@@ -809,6 +815,7 @@ export default function Home() {
                 setVideoLoading(video.id, false);
                 // Mark video as loaded for the first time
                 setVideoLoaded(video.id, true);
+                // Auto-play when video can play (but only for current video to avoid conflicts)
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
@@ -817,6 +824,7 @@ export default function Home() {
                 setVideoLoading(video.id, false);
                 // Mark video as loaded for the first time
                 setVideoLoaded(video.id, true);
+                // Auto-play when video can play through (but only for current video to avoid conflicts)
                 if (index === currentVideoIndex && isPlaying && !isTransitioning) {
                   safePlay(videoRefs.current[index]);
                 }
@@ -867,16 +875,6 @@ export default function Home() {
             
             {/* Video overlay UI */}
             <div className="video-overlay">
-              {/* Play/Pause indicator */}
-              {!isPlaying && index === currentVideoIndex && (
-                <div className="play-pause-indicator">
-                  <div className="play-icon">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="white">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                </div>
-              )}
 
               {/* Bottom info section */}
               <div className="bottom-section">

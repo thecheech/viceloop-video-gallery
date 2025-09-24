@@ -244,11 +244,7 @@ body {
     /* Remove conflicting padding that causes progressive shifts */
   }
 
-  .video-slide {
-    height: 100vh;
-    height: 100dvh;
-    /* Use consistent height without complex calculations */
-  }
+  /* Video slide positioning handled by media queries below */
 
   /* Prevent mobile browser issues */
   .tiktok-container {
@@ -328,10 +324,24 @@ body {
   }
   
   .video-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100vh;
     border-radius: 12px;
-    overflow: visible; /* Remove clipping that hides videos 2-5 */
+    /* Hide videos that are not current to prevent overlap */
+    opacity: 0;
+    pointer-events: none;
+    /* Ensure videos can still load */
+    visibility: hidden;
+  }
+
+  /* Show only the current video */
+  .video-slide[data-current="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
   }
   
   .video-player {
@@ -642,26 +652,7 @@ body {
   pointer-events: auto;
 }
 
-.play-pause-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  padding: 20px;
-  animation: fadeInOut 1s ease-in-out;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-}
-
-.play-icon svg {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
+/* Play/pause indicator removed - videos always autoplay */
 
 .bottom-section {
   position: absolute;
